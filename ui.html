@@ -1,0 +1,246 @@
+<script src="http://cdnjs.cloudflare.com/ajax/libs/p5.js/0.4.17/p5.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.js"></script>
+
+<script>
+    var state = {
+        start: [7,7],
+        lines: [],
+        currentLine: 0,
+        color: 1,
+        segment: 0,
+    }
+
+    var cfg = {
+
+        colors: [
+            //[29, 202, 255],
+            //[153, 255, 51]
+           // [255,178,102]
+
+           [111,195,223],
+           [255,230,77],
+        ],
+        cols: 15,
+        rows: 15,
+        dim: 40
+    }
+
+
+
+    var utils = {
+        getRandomPoint: function(point) {
+            var x = 1 - Math.floor(3 * Math.random());
+            var y = 1 - Math.floor(3 * Math.random());
+            return [point[0] + x, point[1] + y];
+        }
+    }
+
+    var server = {
+        simulate: function() {
+            do {
+				var point = utils.getRandomPoint(state.start);
+            } while(
+				((point[0] == state.start[0]) && (point[1] == state.start[1]) )
+				|| ( point[0]<0 || point[0]>=cfg.rows ) || ( point[1]<0 || point[1]>= cfg.rows )
+			);
+
+
+            state.color = 1 - state.color
+            state.lines.push([state.start[0], state.start[1], point[0], point[1], state.color]);
+
+            state.start = point;
+
+            if (state.currentLine >= state.lines.length) {
+                state.currentLine = state.lines.length - 1;
+                state.segment = 0;
+            }
+
+        }
+    }
+
+
+
+
+    var bg = {
+        numcols: 10,
+        numrows: 10,
+        gap: 5,
+        xoff: 0,
+        yoff: 0,
+        driftXN: 0,
+        driftYN: 0,
+
+        drawGrid: function() {
+            var xpos = 10;
+            var ypos = 30;
+            var inc = 0.02;
+            var xnoise = this.xoff + inc;
+            var ynoise = this.yoff + inc;
+            for (var y = 0; y < this.numrows; y += 1) {
+                for (var x = 0; x < this.numcols; x += 1) {
+                    this.drawShape(xpos, ypos, this.xspacing - this.gap, this.yspacing - this.gap, noise(xnoise, ynoise));
+                    xpos += this.xspacing;
+                    xnoise += inc;
+                }
+                xpos = 10;
+                xnoise = this.xoff + inc;
+                ypos += this.yspacing;
+                ynoise += inc;
+            }
+        },
+
+
+        drawShape: function(x, y, wid, hei, factor) {
+            var fillval = int(factor * 300);
+            var color = [12,20,31, fillval];
+            fill(fillval);
+            push();
+            translate(x, y);
+            var rot = int(factor * 1440);
+            rotate(radians(rot));
+            scale(factor * 12);
+            rect(0, 0, wid, hei);
+            pop();
+        },
+
+        init: function() {
+            bg.width = cfg.cols * cfg.dim - cfg.dim + 1;
+            bg.height = cfg.cols * cfg.dim - cfg.dim + 1;
+            this.xspacing = (bg.width - bg.gap) / bg.numcols;
+            this.yspacing = (bg.height - bg.gap) / bg.numrows;
+        },
+
+        draw: function() {
+
+            this.driftXN += 0.01;
+            this.driftYN += 0.01;
+            this.xoff += (noise(this.driftXN) * 0.2) - 0.1;
+            this.yoff += (noise(this.driftYN) * 0.2) - 0.1;
+
+            stroke(200, 20, 20, 1);
+
+            this.drawGrid();
+        }
+    }
+
+
+    var arena = {
+
+        draw: function() {
+            translate(0, 0, 0);
+
+            var endPoint = cfg.dim * (cfg.cols - 1);
+            fill(20);
+            stroke(150, 150, 150);
+            strokeWeight(1);
+
+
+            for (var j = 0; j < cfg.cols; j++) {
+                var pos = j * cfg.dim;
+                line(0, pos, endPoint, pos);
+                line(pos, 0, pos, endPoint);
+            }
+
+
+
+            strokeWeight(3);
+
+            if (state.currentLine <= state.lines.length - 1) {
+                if (state.segment >= 15) {
+                    state.currentLine++;
+                    state.segment = 1;
+                } else {
+                    state.segment++;
+                }
+            }
+
+                        stroke(70, 70, 70);
+            strokeWeight(1);
+            for (var i = 0; i < cfg.cols; i++) {
+                for (var j = 0; j < cfg.rows; j++) {
+                    ellipse(j * cfg.dim, i * cfg.dim, 3, 3)
+                }
+            }
+
+                 strokeWeight(3);
+
+            for (var i = 0; i < state.currentLine; i++) {
+                var item = state.lines[i];
+
+                if (!item) continue;
+
+                stroke(cfg.colors[item[4]]);
+                line(item[0] * cfg.dim, item[1] * cfg.dim, item[2] * cfg.dim, item[3] * cfg.dim);
+            }
+
+
+            if (state.currentLine < state.lines.length) {
+
+                var item = state.lines[state.currentLine];
+
+                stroke(cfg.colors[item[4]]);
+                strokeWeight(5);
+
+
+                var x1 = item[0] * cfg.dim;
+                var y1 = item[1] * cfg.dim;
+                var x2 = item[2] * cfg.dim;
+                var y2 = item[3] * cfg.dim;
+
+                x3 = x1 + (state.segment / 15) * (x2 - x1)
+                y3 = y1 + (state.segment / 15) * (y2 - y1)
+
+                line(x1, y1, x3, y3);
+
+                strokeWeight(1);
+
+                var radius = (15-state.segment )  + 7 ;
+                ellipse(x2, y2,radius, radius )
+
+
+
+            }
+
+
+
+
+        }
+    }
+
+
+
+
+    function setup() {
+        createCanvas(cfg.cols * cfg.dim - cfg.dim + 3, cfg.cols * cfg.dim - cfg.dim + 3);
+
+        frameRate(62);
+        smooth();
+
+        init();
+
+        background(255);
+
+    }
+
+    function draw() {
+		//blendMode(SCREEN);
+       // bg.draw();
+
+       background( [12,20,31] );
+
+        arena.draw();
+    }
+
+    function init() {}
+
+
+
+
+    //start UP
+    bg.init();
+
+    window.setInterval(function() {
+
+        server.simulate();
+    }, 500)
+</script>
