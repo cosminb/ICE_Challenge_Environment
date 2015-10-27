@@ -20,8 +20,8 @@
            [111,195,223],
            [255,230,77],
         ],
-        cols: 15,
-        rows: 15,
+        cols: 10,
+        rows: 10,
         dim: 70
     }
 
@@ -70,18 +70,13 @@
         orbitControl();
 
 
-			rotateY(frameCount / 30);
-			rotateZ(frameCount / 30);
+			rotateY(frameCount / 300);
+			rotateZ(frameCount / 300);
 
 
 			this.drawGrid();
 
 			this.drawGameState();
-
-
-        },
-
-        drawGrid : function ( ) {
 
                     if (state.currentLine < state.lines.length) {
 
@@ -95,6 +90,11 @@
                 camera(x1,y1,z1);
 
                 }
+        },
+
+        drawGrid : function ( ) {
+
+
 
 
         	var wave = (sin(1 / 30) + 1) / 2,
@@ -183,9 +183,9 @@
 
     function setup() {
 		var dim = cfg.cols * cfg.dim - cfg.dim + 3 ;
-        createCanvas( dim * 2, dim * 2, WEBGL);
+        createCanvas( dim , dim, WEBGL);
 
-        frameRate(62);
+        frameRate(32);
         //smooth();
 
 
