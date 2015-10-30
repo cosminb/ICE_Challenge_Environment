@@ -67,29 +67,49 @@
     var arena = {
 
         draw: function() {
-        orbitControl();
+			orbitControl();
 
 
 			rotateY(frameCount / 300);
 			rotateZ(frameCount / 300);
+			
+			if (state.currentLine <= state.lines.length - 1) {
+                if (state.segment >= 15) {
+                    state.currentLine++;
+                    state.segment = 1;
+                } else {
+                    state.segment++;
+                }
+            }
 
 
-			this.drawGrid();
-
-			this.drawGameState();
-
-                    if (state.currentLine < state.lines.length) {
+            if (state.currentLine < state.lines.length) {
 
                 var item = state.lines[state.currentLine];
+
+                stroke(cfg.colors[item[6]]);
+
 
 
                 var x1 = item[0] * cfg.dim;
                 var y1 = item[1] * cfg.dim;
                 var z1 = item[2] * cfg.dim;
+                var x2 = item[3] * cfg.dim;
+                var y2 = item[4] * cfg.dim;
+                var z2 = item[5] * cfg.dim;
 
-                camera(x1,y1,z1);
+                x3 = x1 + (state.segment / 15) * (x2 - x1)
+                y3 = y1 + (state.segment / 15) * (y2 - y1)
+                z3 = z1 + (state.segment / 15) * (z2 - z1)
 
-                }
+             
+                camera(x3,y3,z3);
+			}
+
+			this.drawGrid();
+
+			this.drawGameState();
+
         },
 
         drawGrid : function ( ) {
@@ -122,14 +142,7 @@
         drawGameState : function ( ) {
 
 			translate(0, 0, 0 );
-             if (state.currentLine <= state.lines.length - 1) {
-                if (state.segment >= 15) {
-                    state.currentLine++;
-                    state.segment = 1;
-                } else {
-                    state.segment++;
-                }
-            }
+
 
 
             for (var i = 0; i < state.currentLine; i++) {

@@ -7,7 +7,7 @@
         lines: [],
         currentLine: 0,
         color: 1,
-        segment: 0,
+        segment: 0
     }
 
     var cfg = {
@@ -20,9 +20,9 @@
            [111,195,223],
            [255,230,77],
         ],
-        cols: 15,
-        rows: 15,
-        dim: 40
+        cols: 60,
+        rows: 100,
+        dim: 15
     }
 
 
@@ -146,7 +146,7 @@
             strokeWeight(3);
 
             if (state.currentLine <= state.lines.length - 1) {
-                if (state.segment >= 15) {
+                if (state.segment >= 5) {
                     state.currentLine++;
                     state.segment = 1;
                 } else {
@@ -187,15 +187,15 @@
                 var x2 = item[2] * cfg.dim;
                 var y2 = item[3] * cfg.dim;
 
-                x3 = x1 + (state.segment / 15) * (x2 - x1)
-                y3 = y1 + (state.segment / 15) * (y2 - y1)
+                x3 = x1 + (state.segment / 5) * (x2 - x1)
+                y3 = y1 + (state.segment / 5) * (y2 - y1)
 
                 line(x1, y1, x3, y3);
 
                 strokeWeight(1);
 
-                var radius = (15-state.segment )  + 7 ;
-                ellipse(x2, y2,radius, radius )
+                //var radius = (15-state.segment )  + 7 ;
+                //ellipse(x2, y2,radius, radius )
 
 
 
@@ -242,5 +242,5 @@
     window.setInterval(function() {
 
         server.simulate();
-    }, 500)
+    }, 50)
 </script>
