@@ -6,14 +6,16 @@
 <div id="canvas_container"></div>
 
 <script src="libs/raphael-min.js"></script>
+<script src="libs/RaphaelJS.group/js/raphael.group.js"></script>
+
 <script>
 
 var ui = {}
 var v = {}
 var cfg = {
-	colCount : 150,
-	rowCount : 130,
-	dist : 40,
+	colCount : 1050,
+	rowCount : 1030,
+	dist : 20,
 	colors : [
 		"#BADA55",
 		"#5ADBEE",
@@ -22,7 +24,7 @@ var cfg = {
 	previewZoom: 0.003,
 	visibleZone : [ 0, 0, 2000, 2000 ],
 	
-	previewTransform : "s 0.02 0.02 0 0 t 0 0",
+	previewTransform : "s 0.02 0.02 0 0 t 0 200",
 	arenaTransform : "t300,0"
 }
 var state = {
@@ -64,6 +66,11 @@ ui.board = {
 	render : function  ( ) {
 		this.renderPreview();
 		this.renderArena();
+		
+		
+		//var g = new v.paper.group('container',v.grid);
+		
+		//g.attr( { left : 50 } );
 	},
 	
 	renderPreview : function (  ){
@@ -180,7 +187,36 @@ ui.moves = {
 
 }
 
+ui.traps = {
+	addLine : function ( coords, color ) {
+		var l1 = this.drawTrap( v.grid, coords, color, 4 , { "stroke-width" : 1} ) ;
+		v.grid.push( l1 );
+		v.lines.push( l1 );
+		l1.transform(cfg.previewTransform) 
+		
+		var l2 = this.drawTrap( v.grid2, coords, color, cfg.dist, { "stroke-width" : 3 }) ;
+		v.grid2.push( l2 );
+		
+		v.lines.push( l2 );
+		l2.transform( cfg.arenaTransform );
+	},
+	
+	drawTrap : function ( set, coords, color, dist, attr ) {
 
+		var paper = v.paper;
+		
+		var points = [];
+		for ( var i = 0; i< 4; i++ ) 
+			points[i] = coords[ i ] * dist;
+		
+		
+		var trap= paper.ellipse( points[0], points[1] , 1, 1 );
+		
+		trap.animate( { rx : 10, ry : 10 }, 200 );
+		
+		return trap;
+	},
+}
 
 //: Dummy server to simulate receiving lines
 var server = {
@@ -199,10 +235,13 @@ var server = {
 		);
 
 		state.color = 1 - state.color
-		state.lines.push([state.start[0], state.start[1], point[0], point[1], state.color]);
+		//state.lines.push([state.start[0], state.start[1], point[0], point[1], state.color]);
 
 
-		ui.moves.addLine( [state.start[0], state.start[1], point[0], point[1]], state.color );
+		//ui.moves.addLine( [state.start[0], state.start[1], point[0], point[1]], state.color );
+		
+				
+		api.addMove( state.start, point, state.color );
 		
 		state.start = point;
 		
@@ -268,7 +307,6 @@ var api = {
 		state.lines.push([start[0], start[1], point[0], point[1], color]);
 
 		ui.moves.addLine( [start[0], start[1], point[0], point[1]], color );
-		
 	}
 }
 

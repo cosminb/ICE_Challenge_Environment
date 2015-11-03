@@ -20,9 +20,9 @@
            [111,195,223],
            [255,230,77],
         ],
-        cols: 10,
-        rows: 10,
-        dim: 70
+        cols: 1000,
+        rows: 1000,
+        dim: 10
     }
 
 
@@ -120,15 +120,15 @@
         	var wave = (sin(1 / 30) + 1) / 2,
 			dist = cfg.dim; //lerp(99, 150, wave);
 
-        	for(var x=0; x<=10; x++) {
+        	for(var x=0; x<=1000; x++) {
 				push();
 				translate(x * dist, 0, 0);
 				sphere(2);
-				for (var y=0; y<= 10; y++) {
+				for (var y=0; y<= 1000; y++) {
 					push();
 					translate(0, y * dist, 0);
 					sphere(2);
-					for (var z=0; z<=10; z++) {
+					for (var z=0; z<=1000; z++) {
 						push();
 						translate(0, 0, z * dist);
 						sphere(2);
