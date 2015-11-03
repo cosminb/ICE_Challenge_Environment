@@ -1,4 +1,4 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js"></script>
+<script src="libs/raphael-min.js"></script>
 safsf
 <div id="canvas_container"></div>
 <script>
@@ -20,8 +20,6 @@ ui.main = {
 		ui.background.render();
 		ui.board.render();
 		
-		//ui.background.start();
-		
 		ui.moves.render();
 	}
 }
@@ -38,20 +36,18 @@ ui.background = {
 	},
 	
 	x : 1,
-	start :function ( ) {
+	startZoomAnimation :function ( ) {
+	
+		//: testing zoomIn/Out animation
+		
 		var paper = v.paper;
 		
 		var x = 1;
 		window.setInterval( function ( ) {
-			//console.log( x );
 			x -= 0.01;
 			ui.background.x = x;
 			
-			//if ( x < 0 ) x = x + 0.01 )
 			v.grid.transform("s" + x  + "," + x + ",100,100");
-			//paper.setViewBox( x,0, x*10, x*10 );
-			//x+= 1
-			
 			
 		}, 2000 );
 	},
@@ -167,37 +163,37 @@ ui.moves = {
 		for ( var i = 0; i< 5; i++ ) 
 			c[i] = coords[ i ] * cfg.dist;
 		
-		var pathStr =["M",c[2], c[3],"L",c[0],c[1]];
+		var pathStr =["M",c[2], c[3],"M",c[0],c[1]];
 
 		var line = paper.path ( pathStr );
 		
 		line.attr( {
 			'stroke' : cfg.colors[ color ],
-			'stroke-width' : 1,
+			'stroke-width' : 13,
 			'stroke-linecap' : "round"
 		})				
 		
 		var pathStr2 = ["M",c[2], c[3],"L",c[0],c[1]];
 
-		line.attr( { path : pathStr2, "stroke-width" : 1 },200 )
+		line.animate( { path : pathStr2, "stroke-width" : 1 },200 )
 		line.transform("s" + ui.background.x  + "," + ui.background.x + ",100,100") 
 		v.grid.push( line );
 		//v.grid.push( line );
 		
 		
-				var pathStr = ["M",c[2], c[3],"L",c[0],c[1]];
+		var pathStr = ["M",c[2], c[3],"M",c[0],c[1]];
 
 		var line = paper.path ( pathStr );
 		
 		line.attr( {
 			'stroke' : cfg.colors[ color ],
-			'stroke-width' : 1,
+			'stroke-width' : 13,
 			'stroke-linecap' : "round"
 		})				
 		
 		var pathStr2 = ["M",c[2], c[3],"L",c[0],c[1]];
 
-		line.attr( { path : pathStr2, "stroke-width" : 1 },200 )
+		line.animate( { path : pathStr2, "stroke-width" : 1 },200 )
 		v.grid2.push( line );
 		line.attr({"clip-rect" : ui.background.clips.join(",") });
 		
@@ -232,6 +228,7 @@ ui.moves = {
 		if ( changed ) {
 			console.log( changed );
 			v.grid2.attr({"clip-rect" : ui.background.clips.join(",") });
+			//v.grid2.transform( "T" + ui.background[0] + "," + ui.brackground[1] );
 		}
 	}
 }

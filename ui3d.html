@@ -1,283 +1,229 @@
 <script src="http://cdnjs.cloudflare.com/ajax/libs/p5.js/0.4.17/p5.js"></script>
 <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.js"></script>
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/prototype/1.7.2/prototype.js"></script> -->
 
 <script>
-
-	var start = [5,5];
-	var col = 0;
-
-
-	var colors = [
-		[29, 202, 255],
-		[153,255,51]
-	]
-	var lines = [];
-
-
-	var getPoint = function ( point ) {
-
-		var x = 1 - Math.floor(3 * Math.random() );
-		var y = 1 - Math.floor(3 * Math.random() );
-
-		return [ point[0] + x, point[1] + y ];
-	}
-
-	currentLine = 0;
-			var point = getPoint(start);
-
-		lines.push( [ start[0], start[ 1 ], point[0], point[1], 1- col ] );
-
-		//currentLine ++;
-
-		start = point;
-		col = 1 - col
-
-	window.setInterval( function ( ) {
-		var point = getPoint(start);
-
-		lines.push( [ start[0], start[ 1 ], point[0], point[1], 1- col ] );
-
-		//currentLine ++;
-
-		start = point;
-		col = 1 - col
-
-		if ( currentLine>= lines.length ) {
-			currentLine = lines.length;
-			segment = 0;
-			}
-	},1000)
-
-</script>
-
-<script>
-
-
-var w;
-var columns;
-var rows;
-var board;
-var next;
-
-var cfg = {
-	cols : 10,
-	rows: 10,
-	dim : 50
-}
-
-var numcols = 10;
-var numrows = 10;
-var gap = 5;
-var xspacing;
-var yspacing;
-var xoff = 0;
-var yoff = 0;
-var driftXN = 0;
-var driftYN = 0;
-
-
-
-function setup() {
-  createCanvas(cfg.cols * cfg.dim - cfg.dim + 1, cfg.cols * cfg.dim - cfg.dim + 1,WEBGL);
-  w = cfg.dim;
-  // Calculate columns and rows
-
-    frameRate(12);
-
-  columns = cfg.cols;
-  rows = cfg.rows;
-
-
-  init();
-
-    xspacing = (width-gap) / numcols;
-  yspacing = (height-gap) / numrows;
-  background(255);
-
-}
-
-
-
-
-function drawGrid() {
-  var xpos = 10;
-  var ypos = 30;
-  var inc = 0.02;
-  var xnoise = xoff + inc;
-  var ynoise = yoff + inc;
-  for (var y = 0; y < numrows; y+=1) {
-    for (var x = 0; x < numcols; x+=1) {
-      drawShape(xpos, ypos, xspacing-gap, yspacing-gap, noise(xnoise,ynoise));
-      xpos += xspacing;
-      xnoise += inc;
+    var state = {
+        start: [7,7,7],
+        lines: [],
+        currentLine: 0,
+        color: 1,
+        segment: 0,
     }
-    xpos = 10;
-    xnoise = xoff + inc;
-    ypos += yspacing;
-    ynoise += inc;
-  }
-}
 
-function drawShape(x, y, wid, hei, factor) {
-  var fillval = int(factor * 300);
-  fill(fillval, 50);
-  push();
-  translate(x, y);
-  var rot = int(factor * 1440);
-  rotate(radians(rot));
-  scale(factor * 12);
-  rect(0, 0, wid, hei);
-  pop();
-}
+    var cfg = {
 
-var yoff = 0.0
-function draw () {
-//
+        colors: [
+            //[29, 202, 255],
+            //[153, 255, 51]
+           // [255,178,102]
 
-
-draw3d();
-}
-
-
-function drawBG ( ) {
-
-
-    driftXN += 0.01;
-  driftYN += 0.01;
-  xoff += (noise(driftXN) * 0.2) - 0.1;
-  yoff += (noise(driftYN) * 0.2) - 0.1;
-
-  stroke( 200,20,20,0.3) ;
-  fill( 20, 20, 20 );
-  drawGrid();
-
-  stroke( 20,20,20,1 );
-}
-function draw3d() {
-
-orbitControl();
-
-// blue = color (0,0,255);
-//yellow = color (255,255,0);
-	var max = cfg.dim * (cfg.cols-1);
-
-background(255);
-translate(0,0,0);
-
-  rotateX(0.21);
-  //rotateX(frameCount * 0.01);
-  rotateY(frameCount * 0.001);
-
-//pushMatrix();
-fill(20);
-//rect(0,0,125,125);
-
-//text("X Axis",140,-5,0);
-
- for ( var j = 0; j < cfg.cols; j++ ) {
-	var pos = j* cfg.dim;
-
-	line(0, 0, pos, max, 0, pos);
-	line(pos, 0, 0, pos, 0, max);
- }
-
-
-//strokeWeight(10);
-	for ( var i in lines ) {
-		var xline = lines[ i ];
-		fill(colors[ xline[4] ] );
-
-		for ( var k = -3; k < 4; k++ )
-		line( xline[0] * cfg.dim+k , 0, xline[1] * cfg.dim, xline[2] * cfg.dim +k, 0, xline[3] * cfg.dim );
-	}
-}
-
-
-function draw2d() {
-
-drawBG();
-
-
-	var max = cfg.dim * (cfg.cols-1);
-
-//background(255);
-translate(0,0,0);
-
-//pushMatrix();
-fill(20);
-stroke( 120,120,120 );
-//rect(0,0,125,125);
-
-//text("X Axis",140,-5,0);
-
- for ( var j = 0; j < cfg.cols; j++ ) {
-	var pos = j* cfg.dim;
-
-	line(0, pos, max, pos);
-	line(pos,  0, pos,  max);
-
- }
-
- stroke( 40,40,40 );
-
- for ( var i = 0; i< cfg.cols; i++ ) {
-	for ( var j = 0; j<cfg.rows; j++ ) {
-		ellipse( j * cfg.dim , i *cfg.dim, 3, 3 )
-		}
-		}
-
-
-strokeWeight(3);
-
-	if ( currentLine<=lines.length -1 ) {
-		if ( segment >= 15 ) {
-			currentLine++;
-			segment = 1;
-		}
-		else {
-			segment++;
-		}
-	}
-
-
-	for ( var i= 0; i<currentLine;i++ ) {
-		var item = lines[ i ];
-
-		if ( !item ) continue;
-		stroke(colors[ item[4] ] );
-		line( item[0] * cfg.dim,  item[1] * cfg.dim, item[2] * cfg.dim, item[3] * cfg.dim );
-	}
-
-	if ( currentLine < lines.length ) {
-
-		var item = lines[ currentLine ];
-
-
-		stroke(colors[ item[4] ] );
-
-		var x1 = item[0]*cfg.dim;
-		var y1 = item[1]*cfg.dim;
-		var x2 = item[2]*cfg.dim;
-		var y2 = item[3]*cfg.dim;
-
-		x3 = x1 + (segment/15)* ( x2 - x1 )
-		y3 = y1 + (segment/15)* ( y2 - y1 )
-
-		line( x1,y1,x3,y3);
-	}
-
-}
-
-
-var segment = 1;
-
-
-// Fill board randomly
-function init() {
-}
+           [111,195,223],
+           [255,230,77],
+        ],
+        cols: 10,
+        rows: 10,
+        dim: 70
+    }
 
 
 
+    var utils = {
+        getRandomPoint: function(point) {
+            var x = 1 - Math.floor(3 * Math.random());
+            var y = 1 - Math.floor(3 * Math.random());
+            var z = 1 - Math.floor(3 * Math.random());
+            return [point[0] + x, point[1] + y, point[2] + z];
+        }
+    }
+
+    var server = {
+        simulate: function() {
+            do {
+				var point = utils.getRandomPoint(state.start);
+            } while(
+				((point[0] == state.start[0]) && (point[1] == state.start[1])&& (point[2] == state.start[2]) )
+				|| ( point[0]<0 || point[0]>=cfg.rows )
+				|| ( point[1]<0 || point[1]>= cfg.rows )
+				|| ( point[2]<0 || point[2]>= cfg.rows )
+			);
+
+
+            state.color = 1 - state.color
+            state.lines.push([state.start[0], state.start[1], state.start[2], point[0], point[1], point[2], state.color]);
+
+            state.start = point;
+
+            if (state.currentLine >= state.lines.length) {
+                state.currentLine = state.lines.length - 1;
+                state.segment = 0;
+            }
+
+        }
+    }
+
+
+
+
+    var arena = {
+
+        draw: function() {
+			orbitControl();
+
+
+			rotateY(frameCount / 300);
+			rotateZ(frameCount / 300);
+			
+			if (state.currentLine <= state.lines.length - 1) {
+                if (state.segment >= 15) {
+                    state.currentLine++;
+                    state.segment = 1;
+                } else {
+                    state.segment++;
+                }
+            }
+
+
+            if (state.currentLine < state.lines.length) {
+
+                var item = state.lines[state.currentLine];
+
+                stroke(cfg.colors[item[6]]);
+
+
+
+                var x1 = item[0] * cfg.dim;
+                var y1 = item[1] * cfg.dim;
+                var z1 = item[2] * cfg.dim;
+                var x2 = item[3] * cfg.dim;
+                var y2 = item[4] * cfg.dim;
+                var z2 = item[5] * cfg.dim;
+
+                x3 = x1 + (state.segment / 15) * (x2 - x1)
+                y3 = y1 + (state.segment / 15) * (y2 - y1)
+                z3 = z1 + (state.segment / 15) * (z2 - z1)
+
+             
+                camera(x3,y3,z3);
+			}
+
+			this.drawGrid();
+
+			this.drawGameState();
+
+        },
+
+        drawGrid : function ( ) {
+
+
+
+
+        	var wave = (sin(1 / 30) + 1) / 2,
+			dist = cfg.dim; //lerp(99, 150, wave);
+
+        	for(var x=0; x<=10; x++) {
+				push();
+				translate(x * dist, 0, 0);
+				sphere(2);
+				for (var y=0; y<= 10; y++) {
+					push();
+					translate(0, y * dist, 0);
+					sphere(2);
+					for (var z=0; z<=10; z++) {
+						push();
+						translate(0, 0, z * dist);
+						sphere(2);
+						pop();
+					}
+					pop();
+				}
+				pop();
+			}
+		},
+        drawGameState : function ( ) {
+
+			translate(0, 0, 0 );
+
+
+
+            for (var i = 0; i < state.currentLine; i++) {
+                var item = state.lines[i];
+
+                if (!item) continue;
+
+                stroke(cfg.colors[item[6]]);
+
+                var x1 = item[0] * cfg.dim;
+                var y1 = item[1] * cfg.dim;
+                var z1 = item[2] * cfg.dim;
+                var x2 = item[3] * cfg.dim;
+                var y2 = item[4] * cfg.dim;
+                var z2 = item[5] * cfg.dim;
+
+                line(x1, y1, z1, x2, y2, z2);
+            }
+
+
+            if (state.currentLine < state.lines.length) {
+
+                var item = state.lines[state.currentLine];
+
+                stroke(cfg.colors[item[6]]);
+
+
+
+                var x1 = item[0] * cfg.dim;
+                var y1 = item[1] * cfg.dim;
+                var z1 = item[2] * cfg.dim;
+                var x2 = item[3] * cfg.dim;
+                var y2 = item[4] * cfg.dim;
+                var z2 = item[5] * cfg.dim;
+
+                x3 = x1 + (state.segment / 15) * (x2 - x1)
+                y3 = y1 + (state.segment / 15) * (y2 - y1)
+                z3 = z1 + (state.segment / 15) * (z2 - z1)
+
+                line(x1, y1, z1,x3, y3, z3);
+
+
+
+
+            }
+         },
+    }
+
+
+
+
+    function setup() {
+		var dim = cfg.cols * cfg.dim - cfg.dim + 3 ;
+        createCanvas( dim , dim, WEBGL);
+
+        frameRate(32);
+        //smooth();
+
+
+        init();
+
+        background(255);
+
+    }
+
+    function draw() {
+		//blendMode(SCREEN);
+       // bg.draw();
+
+       background( [12,20,31] );
+
+        arena.draw();
+    }
+
+    function init() {}
+
+
+
+
+    window.setInterval(function() {
+
+        server.simulate();
+    }, 500)
 </script>
-
