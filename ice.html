@@ -231,10 +231,8 @@ var server = {
 		this.visited[ start.join("," ) + "," + point.join(",") ] = true;
 
 		state.color = 1 - state.color
-		state.lines.push([start[0], start[1], point[0], point[1], state.color]);
-
-
-		ui.moves.addLine( [start[0], start[1], point[0], point[1]], state.color );
+		
+		api.addMove( start, point, state.color );
 		
 		state.start = point;
 		
@@ -264,6 +262,13 @@ var api = {
 		state.lines = [];
 		
 		state.start = [1,2];
+	},
+	
+	addMove : function ( start, point, color ) {
+		state.lines.push([start[0], start[1], point[0], point[1], color]);
+
+		ui.moves.addLine( [start[0], start[1], point[0], point[1]], color );
+		
 	}
 }
 
