@@ -1,280 +1,218 @@
-<script src="libs/raphael-min.js"></script>
-safsf
+
+<style>
+	body { 
+		background : #345;
+	}
+</style>
+
 <div id="canvas_container"></div>
+
+<script src="libs/raphael-min.js"></script>
 <script>
 
 var ui = {}
 var v = {}
 var cfg = {
-	colCount : 1130,
-	rowCount : 1160,
-	dist : 30,
+	colCount : 50,
+	rowCount : 30,
+	dist : 40,
 	colors : [
 		"#BADA55",
 		"#5ADBEE",
-	]
+	],
+	
+	previewZoom: 0.9,
+	visibleZone : [ 0, 0, 2000, 2000 ],
+	
+	previewTransform : "s0.9,0.9,0,0 t0,0",
+	arenaTransform : "t200,0"
 }
+var state = {
+	start : [10,10],
+	color : 0,
+	lines : []
+}
+
 
 ui.main = {
-	render : function ( ) {
-		ui.background.render();
-		ui.board.render();
+	
+	start : function ( ) {
+		this.setup();
+		this.render();
 		
-		ui.moves.render();
-	}
-}
-
-ui.background = {
-	render : function ( ) {
+		//: start the simulation server
+		server.start();
+	},
+	
+	
+	setup : function ( ) {
 		var container = document.getElementById('canvas_container');
-
-		var paper = v.paper = Raphael(container, 1220, 1200);
-		
-		this.x = 0.1;
-			
+		v.paper = Raphael(container, 2052, 1202);
 		
 	},
-	
-	x : 1,
-	startZoomAnimation :function ( ) {
-	
-		//: testing zoomIn/Out animation
-		
-		var paper = v.paper;
-		
-		var x = 1;
-		window.setInterval( function ( ) {
-			x -= 0.01;
-			ui.background.x = x;
-			
-			v.grid.transform("s" + x  + "," + x + ",100,100");
-			
-		}, 2000 );
-	},
-	clips : [ 0, 0, 1400, 1400 ],
+	render : function ( ) {
+		ui.board.render();		
+	}
 }
 
 ui.board = {
-	render : function ( ) {
-	
-			var paper = v.paper;
-			
-			v.grid = paper.set();
-			v.grid2 = paper.set();
-			
-			
-			for ( var i = 0; i< cfg.colCount; i++ ) {
-				var x1 = i * cfg.dist;
-				var y1 = 0;
-				
-				var x2 = i * cfg.dist;
-				var y2 = cfg.rowCount * cfg.dist  -cfg.dist;
-				var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2 ;
-				var line = paper.path ( pathStr );
-				
-				v.grid.push( line );
-				
-				line.attr( {
-					'stroke' : "rgb(250,250,250)",
-					'stroke-width' : 1
-				});
-			}
-			
-			
-			
-			for ( var i = 0; i< cfg.rowCount; i++ ) {
-				var y1 = i * cfg.dist;
-				var x1 = 0;
-				
-				var y2 = i * cfg.dist;
-				var x2 = cfg.colCount * cfg.dist -cfg.dist;
-				
-				var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2 ;
-				var line = paper.path ( pathStr );
-				
-				v.grid.push( line );
-				
-				line.attr( {
-					'stroke' : "rgb(250,250,250)",
-					'stroke-width' : 1
-				});
-			}
-			
-				v.grid.transform("s" + ui.background.x  + "," + ui.background.x + ",100,100") 
 
-	
-	
-	
-				for ( var i = 0; i< cfg.colCount; i++ ) {
-				var x1 = i * cfg.dist;
-				var y1 = 0;
-				
-				var x2 = i * cfg.dist;
-				var y2 = cfg.rowCount * cfg.dist  -cfg.dist;
-				var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2 ;
-				var line = paper.path ( pathStr );
-				
-				v.grid2.push( line );
-				
-				line.attr( {
-					'stroke' : "rgb(250,250,250)",
-					'stroke-width' : 1
-				});
-			}
-			
-			
-			
-			for ( var i = 0; i< cfg.rowCount; i++ ) {
-				var y1 = i * cfg.dist;
-				var x1 = 0;
-				
-				var y2 = i * cfg.dist;
-				var x2 = cfg.colCount * cfg.dist -cfg.dist;
-				
-				var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2 ;
-				var line = paper.path ( pathStr );
-				
-				v.grid2.push( line );
-				
-				line.attr( {
-					'stroke' : "rgb(250,250,250)",
-					'stroke-width' : 1
-				});
-			}
-			
-			
-			v.grid2.attr({"clip-rect" : ui.background.clips.join(",") });
-
-			
-	}
-}
-
-
-ui.moves = {
-	render : function ( ) {
-				this.addLine( [ 10,9, 10,10 ] );
+	render : function  ( ) {
+		this.renderPreview();
+		this.renderArena();
 	},
 	
-	addLine : function ( coords, color) {
+	renderPreview : function (  ){
 	
+	
+		v.grid = v.paper.set();
+		
+		this.renderGrid( v.grid,  {
+					'stroke' : "rgb(170,170,170)",
+					'stroke-width' : 1
+				}, 4);
+	
+		
+		v.grid.transform( cfg.previewTransform );
+	},
+	
+	renderArena : function  ( ){
+		
+		v.grid2 = v.paper.set();
+		
+		this.renderGrid( v.grid2,  {
+					'stroke' : "rgb(200,200,200,0.7)",
+					'stroke-width' : 1
+				}, cfg.dist);
+			
+		
+		v.grid2.transform( cfg.arenaTransform );
+
+	},
+	
+	
+	renderGrid : function ( set, style, dist ) {
+
 		var paper = v.paper;
 		
-		var c = [];
-		for ( var i = 0; i< 5; i++ ) 
-			c[i] = coords[ i ] * cfg.dist;
-		
-		var pathStr =["M",c[2], c[3],"M",c[0],c[1]];
 
-		var line = paper.path ( pathStr );
-		
-		line.attr( {
-			'stroke' : cfg.colors[ color ],
-			'stroke-width' : 13,
-			'stroke-linecap' : "round"
-		})				
-		
-		var pathStr2 = ["M",c[2], c[3],"L",c[0],c[1]];
-
-		line.animate( { path : pathStr2, "stroke-width" : 1 },200 )
-		line.transform("s" + ui.background.x  + "," + ui.background.x + ",100,100") 
-		v.grid.push( line );
-		//v.grid.push( line );
-		
-		
-		var pathStr = ["M",c[2], c[3],"M",c[0],c[1]];
-
-		var line = paper.path ( pathStr );
-		
-		line.attr( {
-			'stroke' : cfg.colors[ color ],
-			'stroke-width' : 13,
-			'stroke-linecap' : "round"
-		})				
-		
-		var pathStr2 = ["M",c[2], c[3],"L",c[0],c[1]];
-
-		line.animate( { path : pathStr2, "stroke-width" : 1 },200 )
-		v.grid2.push( line );
-		line.attr({"clip-rect" : ui.background.clips.join(",") });
-		
-		
-		var cl = ui.background.clips;
-		
-		var offset = cfg.dist * 3;
-		
-		var changed = false;
-		
-		for ( var i = 0; i<2; i++ ) {
-			if ( cl[i] > c[ i ] - offset ) {
-				cl[i] = c[ i ] - offset;
-				
-				changed = true;
-			}
-
-		}
-		
-		
-		for ( var i = 0; i<2; i++ ) {
-			if ( cl[i] + cl[i+2] < c[ i ] + offset ) {
-				cl[i] = c[ i ] + offset - cl[i + 2];
-				changed = true;
-			}
+		for ( var i = 0; i< cfg.colCount; i++ ) {
+			var x1 = i * dist;
+			var y1 = 0;
 			
+			var x2 = x1;
+			var y2 = cfg.rowCount * dist - dist;
+			var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2 ;
+			var line = paper.path ( pathStr );
+			
+			set.push( line );
+			
+			line.attr( style );
 		}
 		
-		console.log( changed );
-				//changed = false;
-
-		if ( changed ) {
-			console.log( changed );
-			v.grid2.attr({"clip-rect" : ui.background.clips.join(",") });
-			//v.grid2.transform( "T" + ui.background[0] + "," + ui.brackground[1] );
+		
+		
+		for ( var i = 0; i< cfg.rowCount; i++ ) {
+			var y1 = i * dist;
+			var x1 = 0;
+			
+			var y2 = y1;
+			var x2 = cfg.colCount * dist -dist;
+			
+			var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2 ;
+			var line = paper.path ( pathStr );
+			
+			set.push( line );
+			
+			line.attr( style);
 		}
 	}
 }
 
-
-	var state = {
-		start : [10,10],
-		color : 0,
-		lines : []
-	}
-	
-    var utils = {
-        getRandomPoint: function(point) {
-            var x = 1 - Math.floor(3 * Math.random());
-            var y = 1 - Math.floor(3 * Math.random());
-            return [point[0] + x, point[1] + y];
-        }
-    }
-
-    var server = {
-        simulate: function() {
-            do {
-				var point = utils.getRandomPoint(state.start);
-            } while(
-				((point[0] == state.start[0]) && (point[1] == state.start[1]) )
-				|| ( point[0]<0 || point[0]>=cfg.colCount ) || ( point[1]<0 || point[1]>= cfg.rowCount )
-			);
-
-            state.color = 1 - state.color
-            state.lines.push([state.start[0], state.start[1], point[0], point[1], state.color]);
-
-
-			ui.moves.addLine( [state.start[0], state.start[1], point[0], point[1]], state.color );
-			
-			            state.start = point;
-			
-        }, 
+ui.moves = {
+	addLine : function ( coords, color ) {
 		
-		start : function ( ) {
-			window.setInterval(function() {server.simulate();}, 0)
-		}
-    }
+		var l1 = this.drawLine( v.grid, coords, color, 4 , { "stroke-width" : 1} ) ;
+		v.grid.push( l1 );
+		l1.transform(cfg.previewTransform) 
 
-
-ui.main.render();
-
-	server.start();
+		
+		var l2 = this.drawLine( v.grid2, coords, color, cfg.dist, { "stroke-width" : 3 }) ;
+		v.grid2.push( l2 );
+		l2.transform( cfg.arenaTransform );
+		//l2.attr({"clip-rect" : cfg.visibleZone.join(",") });
+	},
 	
+	
+	drawLine : function ( set, coords, color, dist, attr ) {
+
+		var paper = v.paper;
+		
+		var points = [];
+		for ( var i = 0; i< 4; i++ ) 
+			points[i] = coords[ i ] * dist;
+		
+		var pathStr =["M",points[2], points[3],"M",points[0],points[1]];
+
+		var line = paper.path ( pathStr );
+		
+		line.attr( {
+			'stroke' : cfg.colors[ color ],
+			'stroke-width' : 13,
+			'stroke-linecap' : "round"
+		})				
+		
+		var pathStr2 = ["M",points[2], points[3],"L",points[0],points[1]];
+
+		line.animate( { path : pathStr2}, 200 );
+		line.animate( attr ,200 )
+
+		return line;
+	},
+	
+
+}
+
+
+
+//: Dummy server to simulate receiving lines
+var server = {
+	getRandomPoint: function(point) {
+		var x = 1 - Math.floor(3 * Math.random());
+		var y = 1 - Math.floor(3 * Math.random());
+		return [point[0] + x, point[1] + y];
+	},
+
+	simulate: function() {
+		do {
+			var point = this.getRandomPoint(state.start);
+		} while(
+			((point[0] == state.start[0]) && (point[1] == state.start[1]) )
+			|| ( point[0]<0 || point[0]>=cfg.colCount ) || ( point[1]<0 || point[1]>= cfg.rowCount )
+		);
+
+		state.color = 1 - state.color
+		state.lines.push([state.start[0], state.start[1], point[0], point[1], state.color]);
+
+
+		ui.moves.addLine( [state.start[0], state.start[1], point[0], point[1]], state.color );
+		
+		state.start = point;
+		
+	}, 
+	
+	start : function ( ) {
+		window.setInterval(function() {server.simulate();}, 200)
+	}
+}
+
+
+
+
+
+
+//: start the rendering and the server
+ui.main.start();
+
+
 </script>
