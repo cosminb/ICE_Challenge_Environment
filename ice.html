@@ -1,8 +1,6 @@
 
 <style>
-	body { 
-		background : #345;
-	}
+	body {  background : #345; }
 </style>
 
 <div id="canvas_container"></div>
@@ -13,19 +11,19 @@
 var ui = {}
 var v = {}
 var cfg = {
-	colCount : 50,
-	rowCount : 30,
+	colCount : 150,
+	rowCount : 130,
 	dist : 40,
 	colors : [
 		"#BADA55",
 		"#5ADBEE",
 	],
 	
-	previewZoom: 0.9,
+	previewZoom: 0.003,
 	visibleZone : [ 0, 0, 2000, 2000 ],
 	
-	previewTransform : "s0.9,0.9,0,0 t0,0",
-	arenaTransform : "t200,0"
+	previewTransform : "s 0.02 0.02 0 0 t 0 0",
+	arenaTransform : "t300,0"
 }
 var state = {
 	start : [10,10],
@@ -49,11 +47,17 @@ ui.main = {
 		var container = document.getElementById('canvas_container');
 		v.paper = Raphael(container, 2052, 1202);
 		
+		v.lines = v.paper.set();
+		
+		var z = 280 / (cfg.colCount*4);
+		
+		cfg.previewTransform = ["s", z, z, 0, 0, "t", 0, 0 ] 
 	},
 	render : function ( ) {
 		ui.board.render();		
 	}
 }
+
 
 ui.board = {
 
@@ -69,7 +73,7 @@ ui.board = {
 		
 		this.renderGrid( v.grid,  {
 					'stroke' : "rgb(170,170,170)",
-					'stroke-width' : 1
+					'stroke-width' : 0.2
 				}, 4);
 	
 		
@@ -134,11 +138,14 @@ ui.moves = {
 		
 		var l1 = this.drawLine( v.grid, coords, color, 4 , { "stroke-width" : 1} ) ;
 		v.grid.push( l1 );
+		v.lines.push( l1 );
 		l1.transform(cfg.previewTransform) 
 
 		
 		var l2 = this.drawLine( v.grid2, coords, color, cfg.dist, { "stroke-width" : 3 }) ;
 		v.grid2.push( l2 );
+		
+		v.lines.push( l2 );
 		l2.transform( cfg.arenaTransform );
 		//l2.attr({"clip-rect" : cfg.visibleZone.join(",") });
 	},
@@ -200,14 +207,65 @@ var server = {
 		state.start = point;
 		
 	}, 
+
+	
+	visited : {},
+	
+	simulate2: function() {
+		var prefix = state.start.join("," ) + ",";
+		
+		do {
+			var start = [];
+			start[ 0 ] = Math.floor( Math.random() * cfg.colCount ) ;//this.getRandomPoint(state.start);
+			start[ 1 ] = Math.floor( Math.random() * cfg.rowCount );
+			
+			var point = this.getRandomPoint( start );
+		} while(
+			this.visited[ start.join("," ) + "," + prefix + point.join(",") ]
+			||
+			 ( point[0]<0 || point[0]>=cfg.colCount ) || ( point[1]<0 || point[1]>= cfg.rowCount )
+		);
+		
+		
+		console.log(  start.join("," ) + "," + point.join(",") );
+		this.visited[ start.join("," ) + "," + point.join(",") ] = true;
+
+		state.color = 1 - state.color
+		state.lines.push([start[0], start[1], point[0], point[1], state.color]);
+
+
+		ui.moves.addLine( [start[0], start[1], point[0], point[1]], state.color );
+		
+		state.start = point;
+		
+	}, 
 	
 	start : function ( ) {
+		
+		
+		//this.fill( );
 		window.setInterval(function() {server.simulate();}, 200)
+		
+	},
+	
+	fill : function ( count ) {
+		count = count || 2000;
+		for ( var i = 0; i < count; i++ ) 
+			server.simulate();
 	}
 }
 
 
+var api = {
 
+	restart : function ( ) {
+		v.lines.remove();
+		
+		state.lines = [];
+		
+		state.start = [1,2];
+	}
+}
 
 
 
