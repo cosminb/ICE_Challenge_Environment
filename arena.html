@@ -13,8 +13,8 @@
 var ui = {}
 var v = {}
 var cfg = {
-	colCount : 1050,
-	rowCount : 1030,
+	colCount : 150,
+	rowCount : 130,
 	dist : 20,
 	colors : [
 		"#BADA55",
@@ -208,12 +208,12 @@ ui.moves = {
 
 ui.traps = {
 	addLine : function ( coords, color ) {
-		var l1 = this.drawTrap( v.grid, coords, color, 4 , { "stroke-width" : 1} ) ;
+		var l1 = this.drawTrap( v.grid, coords, color, 4 , { "stroke-width" : 12, stroke : "red" } ) ;
 		v.grid.push( l1 );
 		v.lines.push( l1 );
 		l1.transform(cfg.previewTransform) 
 		
-		var l2 = this.drawTrap( v.grid2, coords, color, cfg.dist, { "stroke-width" : 3 }) ;
+		var l2 = this.drawTrap( v.grid2, coords, color, cfg.dist, {  "stroke-width" : 12, stroke : "red"  }) ;
 		v.grid2.push( l2 );
 		
 		v.lines.push( l2 );
@@ -232,6 +232,7 @@ ui.traps = {
 		var trap= paper.ellipse( points[0], points[1] , 1, 1 );
 		
 		trap.animate( { rx : 10, ry : 10 }, 200 );
+		trap.attr( attr );
 		
 		return trap;
 	},
@@ -295,7 +296,7 @@ var server = {
 		
 		
 		//this.fill( );
-		window.setInterval(function() {server.simulate();}, 3000)
+		window.setInterval(function() {server.simulate();}, 50)
 		
 	},
 	
@@ -311,20 +312,22 @@ var server = {
 var x  =  {
 
 	xlines : [],
-	region : [0,0,40,40], 
+	region : [0,0,5,5], 
 	
 	repaintTable : function ( ) {
 		var path = [ [] , [] ]
 		var that = this;
 		
-		var offsetX = this.region[ 0 ];
-		var offsetY = this.region[ 1 ];
+		var offsetX = this.region[ 0 ]*30 ;
+		var offsetY = this.region[ 1 ]*30 -300;
 		
-		var visible = this.xlines.each( function ( value ) {
-			if ( that.isOutside( value.point, region ) ) return;
+		
+		for ( var i in this.xlines ) {
+			value = this.xlines[ i ];
+			if ( that.isOutside( value.point, this.region ) ) continue;
 			
-			path[ value.color ].push( "m", value.point[0]  *30  - offsetX, value.point[1]*30 - offsetY, "l", value.point[2]*30 - offsetX, value.point[3]*30 - offsetY );
-		});
+			path[ value.color ].push( "M", value.point[0]  *30  - offsetX, value.point[1]*30 - offsetY, "L", value.point[2]*30 - offsetX, value.point[3]*30 - offsetY );
+		};
 	
 		console.log("repaintTable", {  path  });
 				
@@ -337,26 +340,24 @@ var x  =  {
 			
 			this.lines[0].attr( {
 			'stroke' : "red",
-			'stroke-width' : 1,
+			'stroke-width' : 5,
 			'stroke-linecap' : "round"
 		})				
 		
 			this.lines[1].attr( {
 			'stroke' : "blue",
-			'stroke-width' : 1,
+			'stroke-width' : 5,
 			'stroke-linecap' : "round"
 		})				
 		
 		
-			this.set = v.paper.set();
-		
-		
+		if ( !this.set ) this.set = v.paper.set();
 		}
 		
-		thos.set.clear();
+		this.set.remove();
 		this.lines[0].attr( { path : path [ 0 ] } );
 		this.lines[1].attr( { path : path [ 1 ] } );
-
+		
 		
 	},
 	
@@ -364,16 +365,21 @@ var x  =  {
 		//coords = [ "m", 0,0, "l", 0,0 ];
 		
 
+		if ( this.isOutside( coords, this.region ) ) {
+			this.updateRegion( coords );
+			this.repaintTable( );
+		}
 		
-		var path = [ "m", coords[0] * 30, coords[ 1 ] * 30 , "l", coords[2] *30 , coords[3]*30 ];
+		
+		var path = [ "M", coords[0] * 30 - this.region[0]*30 , coords[ 1 ] * 30  - this.region[1]*30 +300, "L", coords[2] *30  - this.region[0]*30 , coords[3]*30  - this.region[1]*30 +300 ];
 		this.xlines.push( { point: coords, color : color, path : path } );
 
 		
-		console.log( "AddLine:" , path , this.xlines );
-		var line = v.paper.path( path );
+		console.log( "AddLine:" , coords, path , this.xlines );
+		var line = v.paper.path( path ); //"M" +  coords[0] * 10 + "," +  coords[ 1 ] * 10 + "L" + coords[2] *10 +","+ coords[3]*10  );
 		line.attr( { 
 						'stroke' :cfg.colors[ color ],
-			'stroke-width' : 13,
+			'stroke-width' : 20,
 			'stroke-linecap' : "round"
 		})
 		
@@ -414,8 +420,9 @@ var x  =  {
 	
 	updateRegion : function ( line ) {
 		var newRegion = [].concat( this.region );
-		var h = 30;
-		var w = 30;
+		var h = 5;
+		var w = 5;
+		var region = this.region;
 		
 		if ( region[0] > line[ 0 ] ) {newRegion[ 0 ] = region[ 0 ] - 3; }
 		else if ( region[2] < line[ 0 ] ) {newRegion[0] = region[0] + 3; };
@@ -429,6 +436,9 @@ var x  =  {
 		
 		console.log( "New Region" , { newRegion , oldRegion : this.region, line } );
 		this.region = newRegion;
+		
+		if ( this.viewoport ) {
+		}
 	},
 }
 var api = {
