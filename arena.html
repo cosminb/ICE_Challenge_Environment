@@ -60,6 +60,25 @@ ui.main = {
 	}
 }
 
+ui.arena = {
+	
+	points : [
+	
+		[],
+		[],
+		[],
+		
+		[null,null, [[3,3,4,4],]]
+	],
+	
+	getPoints : function ( x, y, dist ) {
+		
+		
+	},
+	render : function ( ) {
+	}
+}
+
 
 ui.board = {
 
@@ -276,7 +295,7 @@ var server = {
 		
 		
 		//this.fill( );
-		window.setInterval(function() {server.simulate();}, 200)
+		window.setInterval(function() {server.simulate();}, 3000)
 		
 	},
 	
@@ -288,6 +307,130 @@ var server = {
 }
 
 
+
+var x  =  {
+
+	xlines : [],
+	region : [0,0,40,40], 
+	
+	repaintTable : function ( ) {
+		var path = [ [] , [] ]
+		var that = this;
+		
+		var offsetX = this.region[ 0 ];
+		var offsetY = this.region[ 1 ];
+		
+		var visible = this.xlines.each( function ( value ) {
+			if ( that.isOutside( value.point, region ) ) return;
+			
+			path[ value.color ].push( "m", value.point[0]  *30  - offsetX, value.point[1]*30 - offsetY, "l", value.point[2]*30 - offsetX, value.point[3]*30 - offsetY );
+		});
+	
+		console.log("repaintTable", {  path  });
+				
+				
+		if ( !this.lines ) {
+			this.lines = []
+			
+			this.lines [ 0 ] = v.paper.path([]);
+			this.lines [ 1 ] = v.paper.path([]);
+			
+			this.lines[0].attr( {
+			'stroke' : "red",
+			'stroke-width' : 1,
+			'stroke-linecap' : "round"
+		})				
+		
+			this.lines[1].attr( {
+			'stroke' : "blue",
+			'stroke-width' : 1,
+			'stroke-linecap' : "round"
+		})				
+		
+		
+			this.set = v.paper.set();
+		
+		
+		}
+		
+		thos.set.clear();
+		this.lines[0].attr( { path : path [ 0 ] } );
+		this.lines[1].attr( { path : path [ 1 ] } );
+
+		
+	},
+	
+	addLine : function ( coords, color ) {
+		//coords = [ "m", 0,0, "l", 0,0 ];
+		
+
+		
+		var path = [ "m", coords[0] * 30, coords[ 1 ] * 30 , "l", coords[2] *30 , coords[3]*30 ];
+		this.xlines.push( { point: coords, color : color, path : path } );
+
+		
+		console.log( "AddLine:" , path , this.xlines );
+		var line = v.paper.path( path );
+		line.attr( { 
+						'stroke' :cfg.colors[ color ],
+			'stroke-width' : 13,
+			'stroke-linecap' : "round"
+		})
+		
+		
+		if ( !this.set ) this.set = v.paper.set();
+		
+		this.set.push( line );
+	},
+	
+	visible : function ( region ) {
+		var visible = this.lines.filter( function ( value ) {
+				return ! that.isOutside( value, region ) ;
+			});
+			
+		return visible;
+	}, 
+	
+	isOutside : function  ( line, region ) {
+	
+		//region has the format [topX, topY, rightX, rightY ]
+		//line format(subpath ) : [ "m", x1, y1, "l", x2, y2 ] 
+		var res = 0;
+		
+		if ( region[0] > line[ 0 ] ) return res = 1;
+		if ( region[2] < line[ 0 ] ) return res = 2;
+
+		if ( region[1] > line[ 1 ] ) return res = 3;
+		if ( region[3] < line[ 1 ] ) return res = 4;
+
+		if ( region[0] > line[ 2 ] ) return res = 5;
+		if ( region[2] < line[ 2 ] ) return res = 6;
+
+		if ( region[1] > line[ 3 ] ) return res = 7;
+		if ( region[3] < line[ 3 ] ) return res = 8;
+		
+		return res;
+	},
+	
+	updateRegion : function ( line ) {
+		var newRegion = [].concat( this.region );
+		var h = 30;
+		var w = 30;
+		
+		if ( region[0] > line[ 0 ] ) {newRegion[ 0 ] = region[ 0 ] - 3; }
+		else if ( region[2] < line[ 0 ] ) {newRegion[0] = region[0] + 3; };
+
+		if ( region[1] > line[ 1 ] ) { newRegion[1] = region[1]  - 3; }
+		else if ( region[3] < line[ 1 ] ) { newRegion[1] = region[1] + 3 };
+		
+		newRegion[ 2 ] = newRegion[0] + w;
+		newRegion[ 3 ] = newRegion[1] + h;
+
+		
+		console.log( "New Region" , { newRegion , oldRegion : this.region, line } );
+		this.region = newRegion;
+	},
+}
 var api = {
 
 	restart : function ( ) {
@@ -302,6 +445,8 @@ var api = {
 		state.lines.push([start[0], start[1], point[0], point[1], color]);
 
 		ui.moves.addLine( [start[0], start[1], point[0], point[1]], color );
+		
+		x.addLine( [start[0], start[1], point[0], point[1]], color );
 	}
 }
 
