@@ -20,10 +20,10 @@ var cfg = {
 		"#BADA55",
 		"#5ADBEE",
 	],
-	
+
 	previewZoom: 0.003,
 	visibleZone : [ 0, 0, 2000, 2000 ],
-	
+
 	previewTransform : "s 0.02 0.02 0 0 t 0 200",
 	arenaTransform : "t300,0"
 }
@@ -35,45 +35,45 @@ var state = {
 
 
 ui.main = {
-	
+
 	start : function ( ) {
 		this.setup();
 		this.render();
-		
+
 		//: start the simulation server
 		server.start();
 	},
-	
-	
+
+
 	setup : function ( ) {
 		//var container = document.getElementById('canvas_container');
 		v.paper = Raphael(10,10, 2052, 1202);
-		
+
 		v.lines = v.paper.set();
-		
+
 		var z = 280 / (cfg.colCount*4);
-		
-		cfg.previewTransform = ["s", z, z, 0, 0, "t", 0, 0 ] 
+
+		cfg.previewTransform = ["s", z, z, 0, 0, "t", 0, 0 ]
 	},
 	render : function ( ) {
-		ui.board.render();		
+		ui.board.render();
 	}
 }
 
 ui.arena = {
-	
+
 	points : [
-	
+
 		[],
 		[],
 		[],
-		
+
 		[null,null, [[3,3,4,4],]]
 	],
-	
+
 	getPoints : function ( x, y, dist ) {
-		
-		
+
+
 	},
 	render : function ( ) {
 	}
@@ -85,75 +85,75 @@ ui.board = {
 	render : function  ( ) {
 		this.renderPreview();
 		this.renderArena();
-		
-		
+
+
 		//var g = new v.paper.group('container',v.grid);
-		
+
 		//g.attr( { left : 50 } );
 	},
-	
+
 	renderPreview : function (  ){
-	
-	
+
+
 		v.grid = v.paper.set();
-		
+
 		this.renderGrid( v.grid,  {
 					'stroke' : "rgb(170,170,170)",
 					'stroke-width' : 0.2
 				}, 4);
-	
-		
+
+
 		v.grid.transform( cfg.previewTransform );
 	},
-	
+
 	renderArena : function  ( ){
-		
+
 		v.grid2 = v.paper.set();
-		
+
 		this.renderGrid( v.grid2,  {
 					'stroke' : "rgb(200,200,200,0.7)",
 					'stroke-width' : 1
 				}, cfg.dist);
-			
-		
+
+
 		v.grid2.transform( cfg.arenaTransform );
 
 	},
-	
-	
+
+
 	renderGrid : function ( set, style, dist ) {
 
 		var paper = v.paper;
-		
+
 
 		for ( var i = 0; i< cfg.colCount; i++ ) {
 			var x1 = i * dist;
 			var y1 = 0;
-			
+
 			var x2 = x1;
 			var y2 = cfg.rowCount * dist - dist;
 			var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2 ;
 			var line = paper.path ( pathStr );
-			
+
 			set.push( line );
-			
+
 			line.attr( style );
 		}
-		
-		
-		
+
+
+
 		for ( var i = 0; i< cfg.rowCount; i++ ) {
 			var y1 = i * dist;
 			var x1 = 0;
-			
+
 			var y2 = y1;
 			var x2 = cfg.colCount * dist -dist;
-			
+
 			var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2 ;
 			var line = paper.path ( pathStr );
-			
+
 			set.push( line );
-			
+
 			line.attr( style);
 		}
 	}
@@ -161,40 +161,40 @@ ui.board = {
 
 ui.moves = {
 	addLine : function ( coords, color ) {
-		
+
 		var l1 = this.drawLine( v.grid, coords, color, 4 , { "stroke-width" : 1} ) ;
 		v.grid.push( l1 );
 		v.lines.push( l1 );
-		l1.transform(cfg.previewTransform) 
+		l1.transform(cfg.previewTransform)
 
-		
+
 		var l2 = this.drawLine( v.grid2, coords, color, cfg.dist, { "stroke-width" : 3 }) ;
 		v.grid2.push( l2 );
-		
+
 		v.lines.push( l2 );
 		l2.transform( cfg.arenaTransform );
 		//l2.attr({"clip-rect" : cfg.visibleZone.join(",") });
 	},
-	
-	
+
+
 	drawLine : function ( set, coords, color, dist, attr ) {
 
 		var paper = v.paper;
-		
+
 		var points = [];
-		for ( var i = 0; i< 4; i++ ) 
+		for ( var i = 0; i< 4; i++ )
 			points[i] = coords[ i ] * dist;
-		
+
 		var pathStr =["M",points[2], points[3],"M",points[0],points[1]];
 
 		var line = paper.path ( pathStr );
-		
+
 		line.attr( {
 			'stroke' : cfg.colors[ color ],
 			'stroke-width' : 13,
 			'stroke-linecap' : "round"
-		})				
-		
+		})
+
 		var pathStr2 = ["M",points[2], points[3],"L",points[0],points[1]];
 
 		line.animate( { path : pathStr2}, 200 );
@@ -202,7 +202,7 @@ ui.moves = {
 
 		return line;
 	},
-	
+
 
 }
 
@@ -211,29 +211,29 @@ ui.traps = {
 		var l1 = this.drawTrap( v.grid, coords, color, 4 , { "stroke-width" : 12, stroke : "red" } ) ;
 		v.grid.push( l1 );
 		v.lines.push( l1 );
-		l1.transform(cfg.previewTransform) 
-		
+		l1.transform(cfg.previewTransform)
+
 		var l2 = this.drawTrap( v.grid2, coords, color, cfg.dist, {  "stroke-width" : 12, stroke : "red"  }) ;
 		v.grid2.push( l2 );
-		
+
 		v.lines.push( l2 );
 		l2.transform( cfg.arenaTransform );
 	},
-	
+
 	drawTrap : function ( set, coords, color, dist, attr ) {
 
 		var paper = v.paper;
-		
+
 		var points = [];
-		for ( var i = 0; i< 4; i++ ) 
+		for ( var i = 0; i< 4; i++ )
 			points[i] = coords[ i ] * dist;
-		
-		
+
+
 		var trap= paper.ellipse( points[0], points[1] , 1, 1 );
-		
+
 		trap.animate( { rx : 10, ry : 10 }, 200 );
 		trap.attr( attr );
-		
+
 		return trap;
 	},
 }
@@ -255,54 +255,54 @@ var server = {
 		);
 
 		state.color = 1 - state.color
-		
-		api.addMove( state.start, point, state.color );
-		
-		state.start = point;
-		
-	}, 
 
-	
+		api.addMove( state.start, point, state.color );
+
+		state.start = point;
+
+	},
+
+
 	visited : {},
-	
+
 	simulate2: function() {
 		var prefix = state.start.join("," ) + ",";
-		
+
 		do {
 			var start = [];
 			start[ 0 ] = Math.floor( Math.random() * cfg.colCount ) ;//this.getRandomPoint(state.start);
 			start[ 1 ] = Math.floor( Math.random() * cfg.rowCount );
-			
+
 			var point = this.getRandomPoint( start );
 		} while(
 			this.visited[ start.join("," ) + "," + prefix + point.join(",") ]
 			||
 			 ( point[0]<0 || point[0]>=cfg.colCount ) || ( point[1]<0 || point[1]>= cfg.rowCount )
 		);
-		
-		
+
+
 		console.log(  start.join("," ) + "," + point.join(",") );
 		this.visited[ start.join("," ) + "," + point.join(",") ] = true;
 
 		state.color = 1 - state.color
-		
+
 		api.addMove( start, point, state.color );
-		
+
 		state.start = point;
-		
-	}, 
-	
-	start : function ( ) {
-		
-		
-		//this.fill( );
-		window.setInterval(function() {server.simulate();}, 50)
-		
+
 	},
-	
+
+	start : function ( ) {
+
+
+		//this.fill( );
+		window.setInterval(function() {server.simulate();}, 100)
+
+	},
+
 	fill : function ( count ) {
 		count = count || 2000;
-		for ( var i = 0; i < count; i++ ) 
+		for ( var i = 0; i < count; i++ )
 			server.simulate();
 	}
 }
@@ -312,97 +312,111 @@ var server = {
 var x  =  {
 
 	xlines : [],
-	region : [0,0,5,5], 
-	
+	region : [0,0,5,5],
+
 	repaintTable : function ( ) {
 		var path = [ [] , [] ]
 		var that = this;
-		
+
 		var offsetX = this.region[ 0 ]*30 ;
 		var offsetY = this.region[ 1 ]*30 -300;
-		
-		
+
+
 		for ( var i in this.xlines ) {
 			value = this.xlines[ i ];
 			if ( that.isOutside( value.point, this.region ) ) continue;
-			
+
 			path[ value.color ].push( "M", value.point[0]  *30  - offsetX, value.point[1]*30 - offsetY, "L", value.point[2]*30 - offsetX, value.point[3]*30 - offsetY );
 		};
-	
+
 		console.log("repaintTable", {  path  });
-				
-				
+
+
 		if ( !this.lines ) {
 			this.lines = []
-			
+
 			this.lines [ 0 ] = v.paper.path([]);
 			this.lines [ 1 ] = v.paper.path([]);
-			
+
 			this.lines[0].attr( {
 			'stroke' : "red",
 			'stroke-width' : 5,
 			'stroke-linecap' : "round"
-		})				
-		
+		})
+
 			this.lines[1].attr( {
 			'stroke' : "blue",
 			'stroke-width' : 5,
 			'stroke-linecap' : "round"
-		})				
-		
-		
+		})
+
+
+		this.rectangle = v.paper.rect( 300 + this.region[0] * cfg.dist , this.region[1] * cfg.dist, 15 * cfg.dist, 15* cfg.dist )
+
+
+		this.rectangle.attr( {
+
+					'stroke' : "red",
+			'stroke-width' : 5,
+			'stroke-linecap' : "round"
+		});
+
 		if ( !this.set ) this.set = v.paper.set();
 		}
-		
+
 		this.set.remove();
 		this.lines[0].attr( { path : path [ 0 ] } );
 		this.lines[1].attr( { path : path [ 1 ] } );
-		
-		
+
+
+		this.rectangle.attr( {
+			x :  300 + this.region[0] * cfg.dist ,
+			y : this.region[1] * cfg.dist} );
+
 	},
-	
+
 	addLine : function ( coords, color ) {
 		//coords = [ "m", 0,0, "l", 0,0 ];
-		
 
-		if ( this.isOutside( coords, this.region ) ) {
+
+		if ( this.isOutside2( coords, this.region ) ) {
 			this.updateRegion( coords );
 			this.repaintTable( );
 		}
-		
-		
+
+
 		var path = [ "M", coords[0] * 30 - this.region[0]*30 , coords[ 1 ] * 30  - this.region[1]*30 +300, "L", coords[2] *30  - this.region[0]*30 , coords[3]*30  - this.region[1]*30 +300 ];
 		this.xlines.push( { point: coords, color : color, path : path } );
 
-		
+
 		console.log( "AddLine:" , coords, path , this.xlines );
 		var line = v.paper.path( path ); //"M" +  coords[0] * 10 + "," +  coords[ 1 ] * 10 + "L" + coords[2] *10 +","+ coords[3]*10  );
-		line.attr( { 
+		line.attr( {
 						'stroke' :cfg.colors[ color ],
 			'stroke-width' : 20,
 			'stroke-linecap' : "round"
 		})
-		
-		
+
+
 		if ( !this.set ) this.set = v.paper.set();
-		
+
 		this.set.push( line );
 	},
-	
+
 	visible : function ( region ) {
 		var visible = this.lines.filter( function ( value ) {
 				return ! that.isOutside( value, region ) ;
 			});
-			
+
 		return visible;
-	}, 
-	
+	},
+
 	isOutside : function  ( line, region ) {
-	
+
 		//region has the format [topX, topY, rightX, rightY ]
-		//line format(subpath ) : [ "m", x1, y1, "l", x2, y2 ] 
+		//line format(subpath ) : [ "m", x1, y1, "l", x2, y2 ]
 		var res = 0;
-		
+
 		if ( region[0] > line[ 0 ] ) return res = 1;
 		if ( region[2] < line[ 0 ] ) return res = 2;
 
@@ -414,29 +428,50 @@ var x  =  {
 
 		if ( region[1] > line[ 3 ] ) return res = 7;
 		if ( region[3] < line[ 3 ] ) return res = 8;
-		
+
 		return res;
 	},
-	
+
+	isOutside2 : function  ( line, region ) {
+
+		//region has the format [topX, topY, rightX, rightY ]
+		//line format(subpath ) : [ "m", x1, y1, "l", x2, y2 ]
+		var res = 0;
+
+		if ( region[0] +2 > line[ 0 ] ) return res = 1;
+		if ( region[2] -2 < line[ 0 ] ) return res = 2;
+
+		if ( region[1] +2 > line[ 1 ] ) return res = 3;
+		if ( region[3] -2 < line[ 1 ] ) return res = 4;
+
+		if ( region[0] +2 > line[ 2 ] ) return res = 5;
+		if ( region[2] -2 < line[ 2 ] ) return res = 6;
+
+		if ( region[1] +2 > line[ 3 ] ) return res = 7;
+		if ( region[3] -2 < line[ 3 ] ) return res = 8;
+
+		return res;
+	},
+
 	updateRegion : function ( line ) {
 		var newRegion = [].concat( this.region );
-		var h = 5;
-		var w = 5;
+		var h = 15;
+		var w = 15;
 		var region = this.region;
-		
-		if ( region[0] > line[ 0 ] ) {newRegion[ 0 ] = region[ 0 ] - 3; }
-		else if ( region[2] < line[ 0 ] ) {newRegion[0] = region[0] + 3; };
 
-		if ( region[1] > line[ 1 ] ) { newRegion[1] = region[1]  - 3; }
-		else if ( region[3] < line[ 1 ] ) { newRegion[1] = region[1] + 3 };
-		
+		if ( region[0]+2 >= line[ 0 ] ) {newRegion[ 0 ] = region[ 0 ] - 3; }
+		else if ( region[2] -2<= line[ 0 ] ) {newRegion[0] = region[0] + 3; };
+
+		if ( region[1] +2>= line[ 1 ] ) { newRegion[1] = region[1]  - 3; }
+		else if ( region[3]-2 <= line[ 1 ] ) { newRegion[1] = region[1] + 3 };
+
 		newRegion[ 2 ] = newRegion[0] + w;
 		newRegion[ 3 ] = newRegion[1] + h;
 
-		
+
 		console.log( "New Region" , { newRegion , oldRegion : this.region, line } );
 		this.region = newRegion;
-		
+
 		if ( this.viewoport ) {
 		}
 	},
@@ -445,17 +480,17 @@ var api = {
 
 	restart : function ( ) {
 		v.lines.remove();
-		
+
 		state.lines = [];
-		
+
 		state.start = [1,2];
 	},
-	
+
 	addMove : function ( start, point, color ) {
 		state.lines.push([start[0], start[1], point[0], point[1], color]);
 
 		ui.moves.addLine( [start[0], start[1], point[0], point[1]], color );
-		
+
 		x.addLine( [start[0], start[1], point[0], point[1]], color );
 	}
 }
