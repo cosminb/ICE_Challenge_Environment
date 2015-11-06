@@ -289,7 +289,9 @@ var server = {
 
 
 var api = {
-
+	inputFile : function ( fileContent) {
+	},
+	
 	restart : function ( ) {
 		v.lines.remove();
 		
@@ -297,11 +299,21 @@ var api = {
 		
 		state.start = [1,2];
 	},
+	currentBall :  1, 
 	
-	addMove : function ( start, point, color ) {
+	addMove : function ( line ) {
+		if ( 1 ) { this.addBallMove( ) }
+		else if ( 1 ) { this.addElfMove ( ) }
+	},
+	addBallMove : function ( start, point, color ) {
 		state.lines.push([start[0], start[1], point[0], point[1], color]);
 
 		ui.moves.addLine( [start[0], start[1], point[0], point[1]], color );
+	}, 
+	addElfMove : function ( start, point, color ) {
+	},
+	
+	addDragonMove : function ( start, point, color ) {
 	}
 }
 

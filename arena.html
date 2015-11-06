@@ -1,504 +1,747 @@
-
 <style>
-	body {  background : #345; }
+    body {
+        background: #345;
+    }
 </style>
-
 <div id="canvas_container"></div>
-
 <script src="libs/raphael-min.js"></script>
 <script src="libs/RaphaelJS.group/js/raphael.group.js"></script>
-
 <script>
+    var ui = {}
+    var v = {}
+    var cfg = {
+        colCount: 250,
+        rowCount: 230,
+        dist: 20,
+        colors: [
+            "#BADA55",
+            "#5ADBEE",
+        ],
 
-var ui = {}
-var v = {}
-var cfg = {
-	colCount : 150,
-	rowCount : 130,
-	dist : 20,
-	colors : [
-		"#BADA55",
-		"#5ADBEE",
-	],
+        previewZoom: 0.003,
+        visibleZone: [0, 0, 2000, 2000],
 
-	previewZoom: 0.003,
-	visibleZone : [ 0, 0, 2000, 2000 ],
+        previewTransform: "s 0.02 0.02 0 0 t 0 500",
+        arenaTransform: "t300,0"
+    }
+    var state = {
+        start: [10, 10],
+        color: 0,
+        lines: []
+    }
 
-	previewTransform : "s 0.02 0.02 0 0 t 0 200",
-	arenaTransform : "t300,0"
-}
-var state = {
-	start : [10,10],
-	color : 0,
-	lines : []
-}
 
+    ui.main = {
 
-ui.main = {
+        start: function() {
+            this.setup();
+            this.render();
 
-	start : function ( ) {
-		this.setup();
-		this.render();
+            //: start the simulation server
+            //server.start();
+        },
 
-		//: start the simulation server
-		server.start();
-	},
 
+        setup: function() {
+            //var container = document.getElementById('canvas_container');
+            v.paper = Raphael(10, 10, 2052, 1202);
+			
+			v.paper.canvas.innerHTML += `
+			    <defs>
+					<radialGradient id="myRadialGradient4"
+					    r="65%"
+					   spreadMethod="pad">
+					  <stop offset="0%"   stop-color="white" stop-opacity="1"/>
+					  <stop offset="30%"   stop-color="blue" stop-opacity="0.9"/>
+					  <stop offset="60%"   stop-color="white" stop-opacity="0.5"/>
+					  <stop offset="80%"   stop-color="blue" stop-opacity="0.2"/>
+					  <stop offset="100%" stop-color="red" stop-opacity="0" />
+					</radialGradient>
+				</defs>
 
-	setup : function ( ) {
-		//var container = document.getElementById('canvas_container');
-		v.paper = Raphael(10,10, 2052, 1202);
+			`
 
-		v.lines = v.paper.set();
+            v.lines = v.paper.set();
 
-		var z = 280 / (cfg.colCount*4);
+            var z = 280 / (cfg.colCount * 4);
 
-		cfg.previewTransform = ["s", z, z, 0, 0, "t", 0, 0 ]
-	},
-	render : function ( ) {
-		ui.board.render();
-	}
-}
+            cfg.previewTransform = ["s", z, z, 0, 0, "t", 0, 0]
+        },
+        render: function() {
+            ui.board.render();
+        }
+    }
 
-ui.arena = {
+    ui.arena = {
 
-	points : [
+        points: [
 
-		[],
-		[],
-		[],
+            [],
+            [],
+            [],
 
-		[null,null, [[3,3,4,4],]]
-	],
+            [null, null, [
+                [3, 3, 4, 4],
+            ]]
+        ],
 
-	getPoints : function ( x, y, dist ) {
+        getPoints: function(x, y, dist) {
 
 
-	},
-	render : function ( ) {
-	}
-}
+        },
+        render: function() {}
+    }
 
 
-ui.board = {
+    ui.board = {
 
-	render : function  ( ) {
-		this.renderPreview();
-		this.renderArena();
+        render: function() {
+            this.renderPreview();
+            //this.renderArena();
 
 
-		//var g = new v.paper.group('container',v.grid);
+            //var g = new v.paper.group('container',v.grid);
 
-		//g.attr( { left : 50 } );
-	},
+            //g.attr( { left : 50 } );
+        },
 
-	renderPreview : function (  ){
+        renderPreview: function() {
 
 
-		v.grid = v.paper.set();
+            v.grid = v.paper.set();
 
-		this.renderGrid( v.grid,  {
-					'stroke' : "rgb(170,170,170)",
-					'stroke-width' : 0.2
-				}, 4);
+            this.renderGrid(v.grid, {
+                'stroke': "rgb(170,170,170)",
+                'stroke-width': 0.2
+            }, 4)
 
 
-		v.grid.transform( cfg.previewTransform );
-	},
+            v.grid.transform(cfg.previewTransform);
+			
+			var rect = v.paper.rect( 0, 0, 280, 280 );
+			rect.attr( {
+				"stroke" : "white", 
+				"stroke-width" : 3
+				});
+        },
 
-	renderArena : function  ( ){
+        renderArena: function() {
 
-		v.grid2 = v.paper.set();
+            v.grid2 = v.paper.set();
 
-		this.renderGrid( v.grid2,  {
-					'stroke' : "rgb(200,200,200,0.7)",
-					'stroke-width' : 1
-				}, cfg.dist);
+            this.renderGrid(v.grid2, {
+                'stroke': "rgb(200,200,200,0.7)",
+                'stroke-width': 1
+            }, cfg.dist);
 
 
-		v.grid2.transform( cfg.arenaTransform );
+            v.grid2.transform(cfg.arenaTransform);
 
-	},
+        },
 
 
-	renderGrid : function ( set, style, dist ) {
+        renderGrid: function(set, style, dist) {
 
-		var paper = v.paper;
+            var paper = v.paper;
 
 
-		for ( var i = 0; i< cfg.colCount; i++ ) {
-			var x1 = i * dist;
-			var y1 = 0;
+            for (var i = 0; i < cfg.colCount; i++) {
+                var x1 = i * dist;
+                var y1 = 0;
 
-			var x2 = x1;
-			var y2 = cfg.rowCount * dist - dist;
-			var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2 ;
-			var line = paper.path ( pathStr );
+                var x2 = x1;
+                var y2 = cfg.rowCount * dist - dist;
+                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
+                var line = paper.path(pathStr);
 
-			set.push( line );
+                set.push(line);
 
-			line.attr( style );
-		}
+                line.attr(style);
+            }
 
 
 
-		for ( var i = 0; i< cfg.rowCount; i++ ) {
-			var y1 = i * dist;
-			var x1 = 0;
+            for (var i = 0; i < cfg.rowCount; i++) {
+                var y1 = i * dist;
+                var x1 = 0;
 
-			var y2 = y1;
-			var x2 = cfg.colCount * dist -dist;
+                var y2 = y1;
+                var x2 = cfg.colCount * dist - dist;
 
-			var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2 ;
-			var line = paper.path ( pathStr );
+                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
+                var line = paper.path(pathStr);
 
-			set.push( line );
+                set.push(line);
 
-			line.attr( style);
-		}
-	}
-}
+                line.attr(style);
+            }
+        }
+    }
 
-ui.moves = {
-	addLine : function ( coords, color ) {
+    ui.moves = {
+        addLine: function(coords, color) {
 
-		var l1 = this.drawLine( v.grid, coords, color, 4 , { "stroke-width" : 1} ) ;
-		v.grid.push( l1 );
-		v.lines.push( l1 );
-		l1.transform(cfg.previewTransform)
+            var l1 = this.drawLine(v.grid, coords, color, 4, {
+                "stroke-width": 1
+            });
+            v.grid.push(l1);
+            v.lines.push(l1);
+            l1.transform(cfg.previewTransform)
 
+            /*
+            		var l2 = this.drawLine( v.grid2, coords, color, cfg.dist, { "stroke-width" : 3 }) ;
+            		v.grid2.push( l2 );
+   
+            		v.lines.push( l2 );
+            		l2.transform( cfg.arenaTransform );
+            		//l2.attr({"clip-rect" : cfg.visibleZone.join(",") });
+            	*/
+        },
 
-		var l2 = this.drawLine( v.grid2, coords, color, cfg.dist, { "stroke-width" : 3 }) ;
-		v.grid2.push( l2 );
 
-		v.lines.push( l2 );
-		l2.transform( cfg.arenaTransform );
-		//l2.attr({"clip-rect" : cfg.visibleZone.join(",") });
-	},
+        drawLine: function(set, coords, color, dist, attr) {
 
+            var paper = v.paper;
 
-	drawLine : function ( set, coords, color, dist, attr ) {
+            var points = [];
+            for (var i = 0; i < 4; i++)
+                points[i] = coords[i] * dist;
 
-		var paper = v.paper;
+            var pathStr = ["M", points[2], points[3], "M", points[0], points[1]];
 
-		var points = [];
-		for ( var i = 0; i< 4; i++ )
-			points[i] = coords[ i ] * dist;
+            var line = paper.path(pathStr);
 
-		var pathStr =["M",points[2], points[3],"M",points[0],points[1]];
+            line.attr({
+                'stroke': cfg.colors[color],
+                'stroke-width': 13,
+                'stroke-linecap': "round"
+            })
 
-		var line = paper.path ( pathStr );
+            var pathStr2 = ["M", points[2], points[3], "L", points[0], points[1]];
 
-		line.attr( {
-			'stroke' : cfg.colors[ color ],
-			'stroke-width' : 13,
-			'stroke-linecap' : "round"
-		})
+            line.animate({
+                path: pathStr2
+            }, 200);
+            line.animate(attr, 200)
 
-		var pathStr2 = ["M",points[2], points[3],"L",points[0],points[1]];
+            return line;
+        },
 
-		line.animate( { path : pathStr2}, 200 );
-		line.animate( attr ,200 )
 
-		return line;
-	},
+    }
 
+    ui.traps = {
+        addTrap: function(coords, color) {
+		
+			x.addTrap( [].concat( coords ), color );
 
-}
+            var l1 = this.drawTrap(v.grid, coords, color, 4, {
+                "stroke-width": 1,
+                stroke: "red"
+            });
+            v.grid.push(l1);
+            //v.lines.push(l1);
+            l1.transform(cfg.previewTransform)
 
-ui.traps = {
-	addLine : function ( coords, color ) {
-		var l1 = this.drawTrap( v.grid, coords, color, 4 , { "stroke-width" : 12, stroke : "red" } ) ;
-		v.grid.push( l1 );
-		v.lines.push( l1 );
-		l1.transform(cfg.previewTransform)
+			
+			console.log( "trap4", cfg.previewTransform ) ;
+			/*
+            var l2 = this.drawTrap(v.grid2, coords, color, cfg.dist, {
+                "stroke-width": 12,
+                stroke: "red"
+            });
+            v.grid2.push(l2);
 
-		var l2 = this.drawTrap( v.grid2, coords, color, cfg.dist, {  "stroke-width" : 12, stroke : "red"  }) ;
-		v.grid2.push( l2 );
+            v.lines.push(l2);
+            l2.transform(cfg.arenaTransform);
+			
+			*/
+			
+        },
 
-		v.lines.push( l2 );
-		l2.transform( cfg.arenaTransform );
-	},
+        drawTrap: function(set, coords, color, dist, attr) {
 
-	drawTrap : function ( set, coords, color, dist, attr ) {
+            var paper = v.paper;
 
-		var paper = v.paper;
+            var points = [];
+            for (var i = 0; i < 4; i++)
+                points[i] = coords[i] * dist;
 
-		var points = [];
-		for ( var i = 0; i< 4; i++ )
-			points[i] = coords[ i ] * dist;
 
+            var trap = paper.ellipse(points[0], points[1], 1, 1);
 
-		var trap= paper.ellipse( points[0], points[1] , 1, 1 );
+            trap.animate({
+                rx: 10,
+                ry: 10
+            }, 200);
+            trap.attr(attr);
 
-		trap.animate( { rx : 10, ry : 10 }, 200 );
-		trap.attr( attr );
+            return trap;
+        },
+    }
 
-		return trap;
-	},
-}
+    //: Dummy server to simulate receiving lines
+    var server = {
+        getRandomPoint: function(point) {
+            var x = 1 - Math.floor(3 * Math.random());
+            var y = 1 - Math.floor(3 * Math.random());
+            return [point[0] + x, point[1] + y];
+        },
 
-//: Dummy server to simulate receiving lines
-var server = {
-	getRandomPoint: function(point) {
-		var x = 1 - Math.floor(3 * Math.random());
-		var y = 1 - Math.floor(3 * Math.random());
-		return [point[0] + x, point[1] + y];
-	},
+        simulate: function() {
+            do {
+                var point = this.getRandomPoint(state.start);
+            } while (
+                ((point[0] == state.start[0]) && (point[1] == state.start[1])) || (point[0] < 0 || point[0] >= cfg.colCount) || (point[1] < 0 || point[1] >= cfg.rowCount)
+            );
 
-	simulate: function() {
-		do {
-			var point = this.getRandomPoint(state.start);
-		} while(
-			((point[0] == state.start[0]) && (point[1] == state.start[1]) )
-			|| ( point[0]<0 || point[0]>=cfg.colCount ) || ( point[1]<0 || point[1]>= cfg.rowCount )
-		);
+            state.color = 1 - state.color
 
-		state.color = 1 - state.color
+            api.addMove(state.start, point, state.color);
 
-		api.addMove( state.start, point, state.color );
+            state.start = point;
 
-		state.start = point;
+        },
 
-	},
 
+        visited: {},
 
-	visited : {},
+        simulate2: function() {
+            var prefix = state.start.join(",") + ",";
 
-	simulate2: function() {
-		var prefix = state.start.join("," ) + ",";
+            do {
+                var start = [];
+                start[0] = Math.floor(Math.random() * cfg.colCount); //this.getRandomPoint(state.start);
+                start[1] = Math.floor(Math.random() * cfg.rowCount);
 
-		do {
-			var start = [];
-			start[ 0 ] = Math.floor( Math.random() * cfg.colCount ) ;//this.getRandomPoint(state.start);
-			start[ 1 ] = Math.floor( Math.random() * cfg.rowCount );
+                var point = this.getRandomPoint(start);
+            } while (
+                this.visited[start.join(",") + "," + prefix + point.join(",")] ||
+                (point[0] < 0 || point[0] >= cfg.colCount) || (point[1] < 0 || point[1] >= cfg.rowCount)
+            );
 
-			var point = this.getRandomPoint( start );
-		} while(
-			this.visited[ start.join("," ) + "," + prefix + point.join(",") ]
-			||
-			 ( point[0]<0 || point[0]>=cfg.colCount ) || ( point[1]<0 || point[1]>= cfg.rowCount )
-		);
 
+            console.log(start.join(",") + "," + point.join(","));
+            this.visited[start.join(",") + "," + point.join(",")] = true;
 
-		console.log(  start.join("," ) + "," + point.join(",") );
-		this.visited[ start.join("," ) + "," + point.join(",") ] = true;
+            state.color = 1 - state.color
 
-		state.color = 1 - state.color
+            api.addMove(start, point, state.color);
 
-		api.addMove( start, point, state.color );
+            state.start = point;
 
-		state.start = point;
+        },
 
-	},
+        start: function() {
 
-	start : function ( ) {
 
+            //this.fill( );
+            window.setInterval(function() {
+                server.simulate();
+            }, 0)
 
-		//this.fill( );
-		window.setInterval(function() {server.simulate();}, 100)
+        },
 
-	},
+        fill: function(count) {
+            count = count || 2000;
+            for (var i = 0; i < count; i++)
+                server.simulate();
+        }
+    }
 
-	fill : function ( count ) {
-		count = count || 2000;
-		for ( var i = 0; i < count; i++ )
-			server.simulate();
-	}
-}
 
 
+    var x = {
 
-var x  =  {
+        lines: [],
+        region: [0, 0, 5, 5],
+		offset : [ 300, 0 ],
+		
+		colCount : 40,
+		rowCount : 30, 
+		dist : 30, 
+		
 
-	xlines : [],
-	region : [0,0,5,5],
+        drawBoard: function() {
+            this.gridSet = v.paper.set();
 
-	repaintTable : function ( ) {
-		var path = [ [] , [] ]
-		var that = this;
+            this.renderGrid(this.gridSet, {
+                'stroke': "rgb(200,200,200,0.7)",
+                'stroke-width': 1
+            }, this.dist);
 
-		var offsetX = this.region[ 0 ]*30 ;
-		var offsetY = this.region[ 1 ]*30 -300;
+        },
 
 
-		for ( var i in this.xlines ) {
-			value = this.xlines[ i ];
-			if ( that.isOutside( value.point, this.region ) ) continue;
+        renderGrid: function(set, style, dist) {
 
-			path[ value.color ].push( "M", value.point[0]  *30  - offsetX, value.point[1]*30 - offsetY, "L", value.point[2]*30 - offsetX, value.point[3]*30 - offsetY );
-		};
+            var paper = v.paper;
 
-		console.log("repaintTable", {  path  });
 
+            for (var i = 0; i <= this.colCount; i++) {
+                var x1 = i * dist + this.offset[ 0 ];
+                var y1 = this.offset[ 1 ];
 
-		if ( !this.lines ) {
-			this.lines = []
+                var x2 = x1;
+                var y2 = this.rowCount * dist + this.offset[ 1 ] ;
+                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
+                var line = paper.path(pathStr);
 
-			this.lines [ 0 ] = v.paper.path([]);
-			this.lines [ 1 ] = v.paper.path([]);
+                set.push(line);
 
-			this.lines[0].attr( {
-			'stroke' : "red",
-			'stroke-width' : 5,
-			'stroke-linecap' : "round"
-		})
+                line.attr(style);
+            }
 
-			this.lines[1].attr( {
-			'stroke' : "blue",
-			'stroke-width' : 5,
-			'stroke-linecap' : "round"
-		})
 
 
-		this.rectangle = v.paper.rect( 300 + this.region[0] * cfg.dist , this.region[1] * cfg.dist, 15 * cfg.dist, 15* cfg.dist )
+            for (var i = 0; i <= this.rowCount; i++) {
+                var y1 = i * dist  + this.offset[ 1 ];
+                var x1 = 0 + this.offset[ 0 ];
 
+                var y2 = y1 ;
+                var x2 =this.colCount * dist + this.offset[ 0 ];
 
-		this.rectangle.attr( {
+                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
+                var line = paper.path(pathStr);
 
-					'stroke' : "red",
-			'stroke-width' : 5,
-			'stroke-linecap' : "round"
-		});
+                set.push(line);
 
-		if ( !this.set ) this.set = v.paper.set();
-		}
+                line.attr(style);
+            }
+        },
+        repaintTable: function() {
+            var path = [
+                [],
+                []
+            ]
+            var that = this;
 
-		this.set.remove();
-		this.lines[0].attr( { path : path [ 0 ] } );
-		this.lines[1].attr( { path : path [ 1 ] } );
+            var offsetX = this.region[0] * this.dist - this.offset [ 0 ];
+            var offsetY = this.region[1] * this.dist - this.offset [ 1 ];
 
 
-		this.rectangle.attr( {
-			x :  300 + this.region[0] * cfg.dist ,
-			y : this.region[1] * cfg.dist} );
+            for (var i in this.lines) {
+                value = this.lines[i];
+                if (that.isOutside(value.point, this.region)) continue;
 
-	},
+                path[value.color].push("M", value.point[0] * this.dist - offsetX, value.point[1] * this.dist - offsetY, "L", value.point[2] * this.dist - offsetX, value.point[3] * this.dist - offsetY);
+            };
 
-	addLine : function ( coords, color ) {
-		//coords = [ "m", 0,0, "l", 0,0 ];
+            console.log("repaintTable", {
+                path
+            });
 
 
-		if ( this.isOutside2( coords, this.region ) ) {
-			this.updateRegion( coords );
-			this.repaintTable( );
-		}
+            if (!this.paintedLines) {
 
 
-		var path = [ "M", coords[0] * 30 - this.region[0]*30 , coords[ 1 ] * 30  - this.region[1]*30 +300, "L", coords[2] *30  - this.region[0]*30 , coords[3]*30  - this.region[1]*30 +300 ];
-		this.xlines.push( { point: coords, color : color, path : path } );
+                this.drawBoard();
 
+                this.paintedLines = []
 
-		console.log( "AddLine:" , coords, path , this.xlines );
-		var line = v.paper.path( path ); //"M" +  coords[0] * 10 + "," +  coords[ 1 ] * 10 + "L" + coords[2] *10 +","+ coords[3]*10  );
-		line.attr( {
-						'stroke' :cfg.colors[ color ],
-			'stroke-width' : 20,
-			'stroke-linecap' : "round"
-		})
+                this.paintedLines[0] = v.paper.path([]);
+                this.paintedLines[1] = v.paper.path([]);
 
+                this.paintedLines[0].attr({
+                    'stroke': cfg.colors[0],
+                    'stroke-width': 3,
+                    'stroke-linecap': "round"
+                })
 
-		if ( !this.set ) this.set = v.paper.set();
+                this.paintedLines[1].attr({
+                    'stroke': cfg.colors[1],
+                    'stroke-width': 3,
+                    'stroke-linecap': "round"
+                })
 
-		this.set.push( line );
-	},
 
-	visible : function ( region ) {
-		var visible = this.lines.filter( function ( value ) {
-				return ! that.isOutside( value, region ) ;
+                this.rectangle = v.paper.rect(this.region[0] * 4, this.region[1] * 4, this.colCount * 4, this.rowCount * 4)
+
+
+                this.rectangle.attr({
+
+                    'stroke': "red",
+                    'stroke-width': 5,
+                    'stroke-linecap': "round"
+                });
+
+                if (!this.set) this.set = v.paper.set();
+
+                this.rectangle.transform(cfg.previewTransform);
+            }
+
+            this.set.remove();
+            this.paintedLines[0].attr({
+                path: path[0]
+            });
+            this.paintedLines[1].attr({
+                path: path[1]
+            });
+
+
+            this.rectangle.attr({
+                x: this.region[0] * 4,
+                y: this.region[1] * 4
+            });
+			
+			
+			for ( var i in this.objects ) 
+				this.positionTrap( this.objects[ i ] );
+
+        },
+
+		objects : [],
+		
+		addTrap : function ( coords, color ) {
+			var obj = {
+				point : coords,
+				color : color
+			}
+			
+			obj.el = v.paper.ellipse( coords[0] * this.dist ,coords[1]* this.dist, 10,10 );
+
+			obj.el.attr({
+				"stroke-width" : 0
 			});
+			
+			obj.el.toFront();
+			
+			obj.el.node.style.fill = "url(#myRadialGradient4)"
+			
+			
+			var id = "el_" + this.objects.length;
+			obj.el.node.innerHTML = `
 
-		return visible;
-	},
+				<animate id="`+id+`gros" begin="0s;`+id+`petit.end" attributeName="rx" from="0" to="25" dur=".8s"></animate>
+				<animate id="`+id+`petit" begin="`+id+`gros.end" attributeName="rx" from="25" to="0" dur=".5s"></animate>
+				
+				<animate  begin="0s;`+id+`petit.end" attributeName="ry" from="0" to="25" dur=".8s"></animate>
+				<animate  begin="`+id+`gros.end" attributeName="ry" from="25" to="0" dur=".5s"></animate>
+				
+		
+			`;//
+			
+			
+			obj.el.attr( {
+				cx : 200, 
+				cy : 200 
+				});
+			this.objects.push( obj );
+			
+			this.positionTrap( obj );
 
-	isOutside : function  ( line, region ) {
+			
+		},
+		
+		positionTrap : function ( trap ) {
+			if ( this.isOutside( trap.point, this.region ) ) {
+			
+				trap.el.hide();
+				return;
+			};
+			
+			trap.el.show();
+			
+            var offsetX = this.region[0] * this.dist - this.offset [ 0 ];
+            var offsetY = this.region[1] * this.dist - this.offset [ 1 ];
 
-		//region has the format [topX, topY, rightX, rightY ]
-		//line format(subpath ) : [ "m", x1, y1, "l", x2, y2 ]
-		var res = 0;
-
-		if ( region[0] > line[ 0 ] ) return res = 1;
-		if ( region[2] < line[ 0 ] ) return res = 2;
-
-		if ( region[1] > line[ 1 ] ) return res = 3;
-		if ( region[3] < line[ 1 ] ) return res = 4;
-
-		if ( region[0] > line[ 2 ] ) return res = 5;
-		if ( region[2] < line[ 2 ] ) return res = 6;
-
-		if ( region[1] > line[ 3 ] ) return res = 7;
-		if ( region[3] < line[ 3 ] ) return res = 8;
-
-		return res;
-	},
-
-	isOutside2 : function  ( line, region ) {
-
-		//region has the format [topX, topY, rightX, rightY ]
-		//line format(subpath ) : [ "m", x1, y1, "l", x2, y2 ]
-		var res = 0;
-
-		if ( region[0] +2 > line[ 0 ] ) return res = 1;
-		if ( region[2] -2 < line[ 0 ] ) return res = 2;
-
-		if ( region[1] +2 > line[ 1 ] ) return res = 3;
-		if ( region[3] -2 < line[ 1 ] ) return res = 4;
-
-		if ( region[0] +2 > line[ 2 ] ) return res = 5;
-		if ( region[2] -2 < line[ 2 ] ) return res = 6;
-
-		if ( region[1] +2 > line[ 3 ] ) return res = 7;
-		if ( region[3] -2 < line[ 3 ] ) return res = 8;
-
-		return res;
-	},
-
-	updateRegion : function ( line ) {
-		var newRegion = [].concat( this.region );
-		var h = 15;
-		var w = 15;
-		var region = this.region;
-
-		if ( region[0]+2 >= line[ 0 ] ) {newRegion[ 0 ] = region[ 0 ] - 3; }
-		else if ( region[2] -2<= line[ 0 ] ) {newRegion[0] = region[0] + 3; };
-
-		if ( region[1] +2>= line[ 1 ] ) { newRegion[1] = region[1]  - 3; }
-		else if ( region[3]-2 <= line[ 1 ] ) { newRegion[1] = region[1] + 3 };
-
-		newRegion[ 2 ] = newRegion[0] + w;
-		newRegion[ 3 ] = newRegion[1] + h;
+			
+			var at = {
+				cx : trap.point[0] * this.dist - offsetX, 
+				cy : trap.point[1] * this.dist  - offsetY 
+			}
+			
+			console.log( "trap2", offsetX  , offsetY);
+			
+			
+			console.log("trap", at, trap.el.node );
+			trap.el.attr( at )
+			
+			//trap.el.toFront();
+		},
+        addLine: function(coords, color) {
+            //coords = [ "m", 0,0, "l", 0,0 ];
 
 
-		console.log( "New Region" , { newRegion , oldRegion : this.region, line } );
-		this.region = newRegion;
-
-		if ( this.viewoport ) {
-		}
-	},
-}
-var api = {
-
-	restart : function ( ) {
-		v.lines.remove();
-
-		state.lines = [];
-
-		state.start = [1,2];
-	},
-
-	addMove : function ( start, point, color ) {
-		state.lines.push([start[0], start[1], point[0], point[1], color]);
-
-		ui.moves.addLine( [start[0], start[1], point[0], point[1]], color );
-
-		x.addLine( [start[0], start[1], point[0], point[1]], color );
-	}
-}
+            if (this.isOutside2(coords, this.region)) {
+                var updated = this.updateRegion(coords);
+                if ( updated ) this.repaintTable();
+            }
 
 
+			var offsetX = this.region[0] * this.dist - this.offset [ 0 ];
+            var offsetY = this.region[1] * this.dist - this.offset [ 1 ];
 
-//: start the rendering and the server
-ui.main.start();
+            var path = ["M", coords[0] * this.dist - offsetX , coords[1] * this.dist - offsetY, "L", coords[2] * this.dist - offsetX, coords[3] * this.dist - offsetY];
+
+            this.lines.push({
+                point: coords,
+                color: color,
+                path: path
+            });
 
 
-</script>
+            console.log("AddLine:", coords, path, this.xlines);
+
+			var path = [ "M", coords[2] *  this.dist - offsetX, coords[3] *  this.dist - offsetY, "M", coords[0] * this.dist - offsetX , coords[1] *  this.dist - offsetY];
+            var line = v.paper.path(path); //"M" +  coords[0] * 10 + "," +  coords[ 1 ] * 10 + "L" + coords[2] *10 +","+ coords[3]*10  );
+            line.attr({
+                'stroke': cfg.colors[color],
+                'stroke-width': 13,
+                'stroke-linecap': "round"
+            })
+
+			
+			
+			var path = [ "M", coords[2] *  this.dist - offsetX, coords[3] *  this.dist - offsetY, "L", coords[0] *  this.dist - offsetX , coords[1] *  this.dist - offsetY];
+
+            //var path = ["M", coords[2] * 30 - this.region[0] * 30, coords[3] * 30 - this.region[1] * 30 + 300, "L", coords[0] * 30 - this.region[0] * 30, coords[1] * 30 - this.region[1] * 30 + 300]
+            line.animate({
+                path: path
+            }, 100);
+            line.animate({
+                "stroke-width": 3
+            }, 100)
+
+
+            if (!this.set) this.set = v.paper.set();
+
+            this.set.push(line);
+        },
+
+        visible: function(region) {
+            var visible = this.lines.filter(function(value) {
+                return !that.isOutside(value, region);
+            });
+
+            return visible;
+        },
+
+        isOutside: function(line, region) {
+
+            //region has the format [topX, topY, rightX, rightY ]
+            //line format(subpath ) : [ "m", x1, y1, "l", x2, y2 ]
+            var res = 0;
+
+            if (region[0] > line[0]) return res = 1;
+            if (region[2] < line[0]) return res = 2;
+
+            if (region[1] > line[1]) return res = 3;
+            if (region[3] < line[1]) return res = 4;
+
+            if (region[0] > line[2]) return res = 5;
+            if (region[2] < line[2]) return res = 6;
+
+            if (region[1] > line[3]) return res = 7;
+            if (region[3] < line[3]) return res = 8;
+
+            return res;
+        },
+
+        isOutside2: function(line, region) {
+
+            //region has the format [topX, topY, rightX, rightY ]
+            //line format(subpath ) : [ "m", x1, y1, "l", x2, y2 ]
+            var res = 0;
+
+            if (region[0] + 2 > line[0]) return res = 1;
+            if (region[2] - 2 < line[0]) return res = 2;
+
+            if (region[1] + 2 > line[1]) return res = 3;
+            if (region[3] - 2 < line[1]) return res = 4;
+
+            if (region[0] + 2 > line[2]) return res = 5;
+            if (region[2] - 2 < line[2]) return res = 6;
+
+            if (region[1] + 2 > line[3]) return res = 7;
+            if (region[3] - 2 < line[3]) return res = 8;
+
+            return res;
+        },
+
+        updateRegion: function(line) {
+            var newRegion = [].concat(this.region);
+            var h = this.rowCount;
+            var w = this.colCount;
+            var region = this.region;
+
+            if (region[0] + 2 >= line[0]) {
+                newRegion[0] = region[0] - 3;
+            } else if (region[2] - 2 <= line[0]) {
+                newRegion[0] = region[0] + 3;
+            };
+
+            if (region[1] + 2 >= line[1]) {
+                newRegion[1] = region[1] - 3;
+            } else if (region[3] - 2 <= line[1]) {
+                newRegion[1] = region[1] + 3
+            };
+			
+			var updated = true;
+			
+			if ( newRegion[0] < 0 ) newRegion[0] = 0
+			if ( newRegion[1] < 0 ) newRegion[1] = 0;
+
+			if ( newRegion[0] == region[0] && newRegion[1] == region[1] ) updated = false;
+            newRegion[2] = newRegion[0] + w;
+            newRegion[3] = newRegion[1] + h;
+
+
+            console.log("New Region", {
+                newRegion, oldRegion: this.region, line
+            });
+            this.region = newRegion;
+
+            if (this.viewoport) {}
+			
+			return updated;
+        },
+    }
+
+
+
+    var api = {
+
+		startGame : function ( rowCount, colCount, startX, startY) {
+			cfg.rowCount = rowCount;
+			cfg.colCount = colCount;			
+			
+			this.ballPosition = [ startX, startY ];
+			ui.main.start();
+			
+			
+
+		},
+		addNextMove : function (  color, pointX, pointY ) {
+		
+			this.addMove( this.ballPosition, [pointX, pointY], color );
+			
+			this.ballPosition = [ pointX, pointY ];
+		},
+		
+		
+        restart: function() {
+            v.lines.remove();
+
+            state.lines = [];
+
+            state.start = [1, 2];
+        },
+
+        addMove: function(start, point, color) {
+            state.lines.push([start[0], start[1], point[0], point[1], color]);
+
+            ui.moves.addLine([start[0], start[1], point[0], point[1]], color);
+
+            x.addLine([start[0], start[1], point[0], point[1]], color);
+        }
+    }
+
+	
+
+
+    //: start the rendering and the server
+    //
+	
+	//for ( var i = 0; i<200; i++ ) {	ui.traps.addTrap( [ Math.floor( Math.random() * 200 ),Math.floor( Math.random() * 200 ) ], "#C0FFEE" );}
+	</script>
