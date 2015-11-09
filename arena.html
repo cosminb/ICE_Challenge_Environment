@@ -3,12 +3,28 @@
         background: #345;
     }
 </style>
+
+<svg>
+			    <defs>
+					<radialGradient id="myRadialGradient4"
+					    r="65%"
+					   spreadMethod="pad">
+					  <stop offset="0%"   stop-color="white" stop-opacity="1"/>
+					  <stop offset="30%"   stop-color="blue" stop-opacity="0.9"/>
+					  <stop offset="60%"   stop-color="white" stop-opacity="0.5"/>
+					  <stop offset="80%"   stop-color="blue" stop-opacity="0.2"/>
+					  <stop offset="100%" stop-color="red" stop-opacity="0" />
+					</radialGradient>
+				</defs>
+</svg>
 <div id="canvas_container"></div>
 <script src="libs/raphael-min.js"></script>
 <script src="libs/RaphaelJS.group/js/raphael.group.js"></script>
 <script>
     var ui = {}
     var v = {}
+	
+	
     var cfg = {
         colCount: 250,
         rowCount: 230,
@@ -21,9 +37,11 @@
         previewZoom: 0.003,
         visibleZone: [0, 0, 2000, 2000],
 
-        previewTransform: "s 0.02 0.02 0 0 t 0 500",
+        previewTransform: [],
         arenaTransform: "t300,0"
     }
+	
+	
     var state = {
         start: [10, 10],
         color: 0,
@@ -36,35 +54,18 @@
         start: function() {
             this.setup();
             this.render();
-
-            //: start the simulation server
-            //server.start();
         },
 
 
         setup: function() {
-            //var container = document.getElementById('canvas_container');
+            //container for drawings
             v.paper = Raphael(10, 10, 2052, 1202);
-			
-			v.paper.canvas.innerHTML += `
-			    <defs>
-					<radialGradient id="myRadialGradient4"
-					    r="65%"
-					   spreadMethod="pad">
-					  <stop offset="0%"   stop-color="white" stop-opacity="1"/>
-					  <stop offset="30%"   stop-color="blue" stop-opacity="0.9"/>
-					  <stop offset="60%"   stop-color="white" stop-opacity="0.5"/>
-					  <stop offset="80%"   stop-color="blue" stop-opacity="0.2"/>
-					  <stop offset="100%" stop-color="red" stop-opacity="0" />
-					</radialGradient>
-				</defs>
 
-			`
-
+			//lines contain the gri
             v.lines = v.paper.set();
-
+			
+			//compute the zoom level for preview 
             var z = 280 / (cfg.colCount * 4);
-
             cfg.previewTransform = ["s", z, z, 0, 0, "t", 0, 0]
         },
         render: function() {
@@ -72,73 +73,218 @@
         }
     }
 
-    ui.arena = {
-
-        points: [
-
-            [],
-            [],
-            [],
-
-            [null, null, [
-                [3, 3, 4, 4],
-            ]]
-        ],
-
-        getPoints: function(x, y, dist) {
-
-
+	
+	ui.preview = {
+		render : function ( ) {
+			ui.preview.grid.render();
+		},
+	}
+	
+	ui.preview.board = {
+		gridStyle : {
+                'stroke': "rgb(170,170,170)",
+                'stroke-width': 0.2
         },
-        render: function() {}
-    }
+		
+		borderStyle : {
+				"stroke" : "white", 
+				"stroke-width" : 1
+		},
+		dist : 4, 
+		
+		render : function  ( ) {
+		
+			v.grid = v.paper.set();
+			
+			
+			this.renderGrid(v.grid, this.gridStyle, this.dist );
+			this.renderBorder(v.grid, this.borderStyle, this.dist);
+			
+			v.grid.transform(cfg.previewTransform);			
+
+		},
+		renderBorder : function (set, style, dist ) {
+ 			var rect = v.paper.rect( 0, 0, cfg.colCount* dist, cfg.rowCount*dist );
+			rect.attr( style );
+			set.push( rect );
+			
+			var g1 = cfg.gatePosition;
+			var gw = cfg.gateWidth;
+			
+ 			var rect = v.paper.rect( g1*dist, 0, gw* dist, dist/2 );
+			rect.attr( {
+				fill : "white",
+			});
+			rect.attr ( style );
+			set.push( rect );
+			 
+			var rect = v.paper.rect( g1*dist, cfg.rowCount *dist, gw* dist, dist/2 );
+			rect.attr( {
+				fill : "white",
+			});
+			rect.attr ( style );
+			set.push( rect );
+			
+			
+			var y = cfg.rowCount * dist / 2;
+			var maxX = cfg.colCount * dist ;
+			var path = [ "M", 0, y, "L", maxX, y ]
+			var item = v.paper.path( path );
+			item.attr( {
+				fill : "white",
+			});
+			item.attr ( style );
+			set.push( item );
+			
+		},
+
+		renderGrid : function  (set, style, dist ) {
+		    var paper = v.paper;
 
 
+            for (var i = 0; i < cfg.colCount; i++) {
+                var x1 = i * dist;
+                var y1 = 0;
+
+                var x2 = x1;
+                var y2 = cfg.rowCount * dist - dist;
+                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
+                var line = paper.path(pathStr);
+
+                set.push(line);
+
+                line.attr(style);
+            }
+
+
+
+            for (var i = 0; i < cfg.rowCount; i++) {
+                var y1 = i * dist;
+                var x1 = 0;
+
+                var y2 = y1;
+                var x2 = cfg.colCount * dist - dist;
+
+                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
+                var line = paper.path(pathStr);
+
+                set.push(line);
+
+                line.attr(style);
+            }
+		},
+	}
+	
+	ui.preview.moves = {
+	    addLine: function(coords, color) {
+
+            var l1 = this.drawLine(v.grid, coords, color, 4, {
+                "stroke-width": 1
+            });
+            l1.transform(cfg.previewTransform)
+ 
+			v.grid.push(l1);
+ 
+		},
+
+
+        drawLine: function(set, coords, color, dist, attr) {
+
+            var paper = v.paper;
+
+            var points = [];
+            for (var i = 0; i < 4; i++)
+                points[i] = coords[i] * dist;
+
+            var pathStr = ["M", points[2], points[3], "L", points[0], points[1]];
+
+            var line = paper.path(pathStr);
+
+            line.attr({
+                'stroke': cfg.colors[color],
+                'stroke-width': 1,
+                'stroke-linecap': "round"
+            })
+
+            return line;
+        },
+	}
     ui.board = {
 
         render: function() {
             this.renderPreview();
-            //this.renderArena();
 
-
-            //var g = new v.paper.group('container',v.grid);
-
-            //g.attr( { left : 50 } );
         },
 
         renderPreview: function() {
 
 
-            v.grid = v.paper.set();
+  //          v.grid = v.paper.set();
 
+			/*
             this.renderGrid(v.grid, {
                 'stroke': "rgb(170,170,170)",
                 'stroke-width': 0.2
             }, 4)
-
-
-            v.grid.transform(cfg.previewTransform);
+			*/
+			/*
+			ui.preview.board.renderGrid(v.grid, {
+                'stroke': "rgb(170,170,170)",
+                'stroke-width': 0.2
+            }, 4)
+*/
+			//this.renderBorder();
 			
-			var rect = v.paper.rect( 0, 0, 280, 280 );
+			//ui.preview.board.renderBorder( v.grid );
+
+		//	v.grid.transform(cfg.previewTransform);			
+
+		
+		ui.preview.board.render();
+		},
+		
+		renderBorder : function ( ) {
+ 			var rect = v.paper.rect( 0, 0, cfg.colCount* 4, cfg.rowCount*4 );
 			rect.attr( {
 				"stroke" : "white", 
-				"stroke-width" : 3
+				"stroke-width" : 1
 				});
-        },
+			
+			rect.transform( cfg.previewTransform );
 
-        renderArena: function() {
+			var g1 = cfg.gatePosition;
+			var gw = cfg.gateWidth;
+			
+ 			var rect = v.paper.rect( g1*4, 0, gw* 4, 2 );
+			rect.attr( {
+				"stroke" : "white", 
+				"stroke-width" : 5,
+				fill : "white",
+				});
+			
+			rect.transform( cfg.previewTransform );
 
-            v.grid2 = v.paper.set();
+			 
+			 var rect = v.paper.rect( g1*4, cfg.rowCount *4 - 1, gw* 4, 2 );
+			rect.attr( {
+				"stroke" : "white", 
+				"stroke-width" : 5
+				});
+			
+			rect.transform( cfg.previewTransform );
 
-            this.renderGrid(v.grid2, {
-                'stroke': "rgb(200,200,200,0.7)",
-                'stroke-width': 1
-            }, cfg.dist);
+			
+/*			
+                var x1 = i * dist;
+                var y1 = 0;
 
-
-            v.grid2.transform(cfg.arenaTransform);
-
-        },
-
+                var x2 = x1;
+                var y2 = cfg.rowCount * dist - dist;
+                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
+                var line = paper.path(pathStr);
+*/
+				v.grid.push( rect );
+		},
 
         renderGrid: function(set, style, dist) {
 
@@ -187,15 +333,6 @@
             v.grid.push(l1);
             v.lines.push(l1);
             l1.transform(cfg.previewTransform)
-
-            /*
-            		var l2 = this.drawLine( v.grid2, coords, color, cfg.dist, { "stroke-width" : 3 }) ;
-            		v.grid2.push( l2 );
-   
-            		v.lines.push( l2 );
-            		l2.transform( cfg.arenaTransform );
-            		//l2.attr({"clip-rect" : cfg.visibleZone.join(",") });
-            	*/
         },
 
 
@@ -207,22 +344,15 @@
             for (var i = 0; i < 4; i++)
                 points[i] = coords[i] * dist;
 
-            var pathStr = ["M", points[2], points[3], "M", points[0], points[1]];
+            var pathStr = ["M", points[2], points[3], "L", points[0], points[1]];
 
             var line = paper.path(pathStr);
 
             line.attr({
                 'stroke': cfg.colors[color],
-                'stroke-width': 13,
+                'stroke-width': 1,
                 'stroke-linecap': "round"
             })
-
-            var pathStr2 = ["M", points[2], points[3], "L", points[0], points[1]];
-
-            line.animate({
-                path: pathStr2
-            }, 200);
-            line.animate(attr, 200)
 
             return line;
         },
@@ -233,30 +363,15 @@
     ui.traps = {
         addTrap: function(coords, color) {
 		
-			x.addTrap( [].concat( coords ), color );
+			ui.arena.addTrap( [].concat( coords ), color );
 
             var l1 = this.drawTrap(v.grid, coords, color, 4, {
                 "stroke-width": 1,
                 stroke: "red"
             });
             v.grid.push(l1);
-            //v.lines.push(l1);
             l1.transform(cfg.previewTransform)
 
-			
-			console.log( "trap4", cfg.previewTransform ) ;
-			/*
-            var l2 = this.drawTrap(v.grid2, coords, color, cfg.dist, {
-                "stroke-width": 12,
-                stroke: "red"
-            });
-            v.grid2.push(l2);
-
-            v.lines.push(l2);
-            l2.transform(cfg.arenaTransform);
-			
-			*/
-			
         },
 
         drawTrap: function(set, coords, color, dist, attr) {
@@ -280,162 +395,152 @@
         },
     }
 
-    //: Dummy server to simulate receiving lines
-    var server = {
-        getRandomPoint: function(point) {
-            var x = 1 - Math.floor(3 * Math.random());
-            var y = 1 - Math.floor(3 * Math.random());
-            return [point[0] + x, point[1] + y];
-        },
 
-        simulate: function() {
-            do {
-                var point = this.getRandomPoint(state.start);
-            } while (
-                ((point[0] == state.start[0]) && (point[1] == state.start[1])) || (point[0] < 0 || point[0] >= cfg.colCount) || (point[1] < 0 || point[1] >= cfg.rowCount)
-            );
+	ui.x = { };
+	ui.x.board = {
+		render : function ( ) {
+			var set = this.gridSet = v.paper.set();
 
-            state.color = 1 - state.color
+			this.grid.render(set);
+			
+			this.border.render( set, cfg );
+			
+		},
+		refresh : function ( ) {
+			this.border.refresh();
+		},
+		
+		border : {
+		
+			refresh : function (  ) {
+				this.refreshGate( this.gates[ 0 ] );
+				this.refreshGate( this.gates[ 1 ] );
+			},
+			
+			refreshGate : function ( gate ) {
+				var arena = ui.arena;
+				
+				if ( arena.isOutside( gate.pointA, arena.region ) && arena.isOutside( gate.pointB, arena.region) ) {			
+					gate.el.hide();
+					return;
+				};
+				
+				gate.el.show();
+				
+				var offsetX = arena.region[0] * arena.dist - arena.offset [ 0 ];
+				var offsetY = arena.region[1] * arena.dist - arena.offset [ 1 ];
 
-            api.addMove(state.start, point, state.color);
+				
+				var at = {
+					x : gate.pointA[0] * arena.dist - offsetX + 10, 
+					y : gate.pointB[1] * arena.dist  - offsetY 
+				}
+				
+				gate.el.attr( at )
 
-            state.start = point;
+			},
+			
+			render : function (set,  cfg ) {				
+				this.gates = [];
+				
+				var arena = ui.arena;
+				var g1 = cfg.gatePosition;
+				var gw = cfg.gateWidth;
+				var dist = arena.dist
+				
+				var item = v.paper.rect( g1*dist + 10, 0, gw* dist - 20, dist* 0.75 );
+				item.attr( {
+					"stroke" : "white", 
+					"stroke-width" : 5,
+					fill : "white",
+					});
+				item.attr( {
+					"clip-rect" : [arena.offset[0], arena.offset[1], arena.rowCount * arena.dist, arena.colCount * arena.dist].join(" ")
+				} );
+				this.gates[ 0 ] = { el : item, pointA : [g1, 0],pointB : [g1 + gw, 0]  };
+				 
+				 var item = v.paper.rect( g1*dist + 10, cfg.rowCount *dist + dist * 0.75, gw* dist - 20, dist * 0.75 );
+				item.attr( {
+					"stroke" : "white", 
+					"stroke-width" : 5,
+					fill : "white"
+					});
+				
+				item.attr( {
+					"clip-rect" : [arena.offset[0], arena.offset[1], arena.colCount * arena.dist, arena.rowCount * arena.dist].join(" ")
+				} );
+				//item.transform( cfg.previewTransform );
 
-        },
+				this.gates[ 1 ] = { el : item, pointA : [g1, cfg.rowCount],pointB : [g1 + gw, cfg.rowCount]  };
+			},
+		},
+		grid : {
+			render : function (set ) {
+				//OQ : make lines a single path ? 
+				var paper = v.paper;
+				var style = {
+					'stroke': "rgb(200,200,200,0.7)",
+					'stroke-width': 1
+				}
+				
+				var arena = ui.arena;
+				var dist = arena.dist;
+				var offsetX = arena.offset[ 0 ];
+				var offsetY = arena.offset[ 1 ];
+				var rowCount = arena.rowCount;
+				var colCount = arena.colCount;
+				
+				for (var i = 0; i <= colCount; i++) {
+					var x1 = i * dist + offsetX;
+					var y1 = offsetY;
 
+					var x2 = x1;
+					var y2 = rowCount * dist + offsetY ;
+					var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
+					var line = paper.path(pathStr);
 
-        visited: {},
+					set.push(line);
 
-        simulate2: function() {
-            var prefix = state.start.join(",") + ",";
-
-            do {
-                var start = [];
-                start[0] = Math.floor(Math.random() * cfg.colCount); //this.getRandomPoint(state.start);
-                start[1] = Math.floor(Math.random() * cfg.rowCount);
-
-                var point = this.getRandomPoint(start);
-            } while (
-                this.visited[start.join(",") + "," + prefix + point.join(",")] ||
-                (point[0] < 0 || point[0] >= cfg.colCount) || (point[1] < 0 || point[1] >= cfg.rowCount)
-            );
-
-
-            console.log(start.join(",") + "," + point.join(","));
-            this.visited[start.join(",") + "," + point.join(",")] = true;
-
-            state.color = 1 - state.color
-
-            api.addMove(start, point, state.color);
-
-            state.start = point;
-
-        },
-
-        start: function() {
-
-
-            //this.fill( );
-            window.setInterval(function() {
-                server.simulate();
-            }, 0)
-
-        },
-
-        fill: function(count) {
-            count = count || 2000;
-            for (var i = 0; i < count; i++)
-                server.simulate();
-        }
-    }
+					line.attr(style);
+				}
 
 
 
-    var x = {
+				for (var i = 0; i <= rowCount; i++) {
+					var y1 = i * dist  + offsetY;
+					var x1 = 0 + offsetX;
+
+					var y2 = y1 ;
+					var x2 =colCount * dist + offsetX;
+
+					var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
+					var line = paper.path(pathStr);
+
+					set.push(line);
+
+					line.attr(style);
+				}
+			}
+		}
+	}
+	
+	ui.x.moves = {
+	}
+	
+    ui.arena = {
 
         lines: [],
         region: [0, 0, 5, 5],
 		offset : [ 300, 0 ],
 		
-		colCount : 40,
-		rowCount : 30, 
-		dist : 30, 
+		colCount : 20,
+		rowCount : 20, 
+		dist : 50, 
+		
+		init : function ( ) {
 		
 
-        drawBoard: function() {
-            this.gridSet = v.paper.set();
-
-            this.renderGrid(this.gridSet, {
-                'stroke': "rgb(200,200,200,0.7)",
-                'stroke-width': 1
-            }, this.dist);
-
-        },
-
-
-        renderGrid: function(set, style, dist) {
-
-            var paper = v.paper;
-
-
-            for (var i = 0; i <= this.colCount; i++) {
-                var x1 = i * dist + this.offset[ 0 ];
-                var y1 = this.offset[ 1 ];
-
-                var x2 = x1;
-                var y2 = this.rowCount * dist + this.offset[ 1 ] ;
-                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
-                var line = paper.path(pathStr);
-
-                set.push(line);
-
-                line.attr(style);
-            }
-
-
-
-            for (var i = 0; i <= this.rowCount; i++) {
-                var y1 = i * dist  + this.offset[ 1 ];
-                var x1 = 0 + this.offset[ 0 ];
-
-                var y2 = y1 ;
-                var x2 =this.colCount * dist + this.offset[ 0 ];
-
-                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
-                var line = paper.path(pathStr);
-
-                set.push(line);
-
-                line.attr(style);
-            }
-        },
-        repaintTable: function() {
-            var path = [
-                [],
-                []
-            ]
-            var that = this;
-
-            var offsetX = this.region[0] * this.dist - this.offset [ 0 ];
-            var offsetY = this.region[1] * this.dist - this.offset [ 1 ];
-
-
-            for (var i in this.lines) {
-                value = this.lines[i];
-                if (that.isOutside(value.point, this.region)) continue;
-
-                path[value.color].push("M", value.point[0] * this.dist - offsetX, value.point[1] * this.dist - offsetY, "L", value.point[2] * this.dist - offsetX, value.point[3] * this.dist - offsetY);
-            };
-
-            console.log("repaintTable", {
-                path
-            });
-
-
-            if (!this.paintedLines) {
-
-
-                this.drawBoard();
+                //this.drawBoard();
 
                 this.paintedLines = []
 
@@ -468,12 +573,41 @@
                 if (!this.set) this.set = v.paper.set();
 
                 this.rectangle.transform(cfg.previewTransform);
-            }
+
+				ui.x.board.render();
+				//this.drawGates();
+		},
+		
+        repaintTable: function() {
+            var path = [
+                [],
+                []
+            ]
+
+            var offsetX = this.region[0] * this.dist - this.offset [ 0 ];
+            var offsetY = this.region[1] * this.dist - this.offset [ 1 ];
+
+
+            for (var i in this.lines) {
+                value = this.lines[i];
+                if (this.isOutside(value.point, this.region)) continue;
+
+                path[value.color].push("M", value.point[0] * this.dist - offsetX, value.point[1] * this.dist - offsetY, "L", value.point[2] * this.dist - offsetX, value.point[3] * this.dist - offsetY);
+            };
+
+
+            if (!this.paintedLines) {
+				this.init();
+			}
 
             this.set.remove();
+			
+			if ( path[0].length ) 
             this.paintedLines[0].attr({
                 path: path[0]
             });
+			
+			if ( path[1].length )
             this.paintedLines[1].attr({
                 path: path[1]
             });
@@ -488,9 +622,69 @@
 			for ( var i in this.objects ) 
 				this.positionTrap( this.objects[ i ] );
 
+				
+			ui.x.board.refresh();	
+
         },
 
 		objects : [],
+
+		drawGates : function ( ) {
+		/*
+			if ( this.gates ) return;
+			
+			this.gates = [];
+			
+			var g1 = cfg.gatePosition;
+			var gw = cfg.gateWidth;
+			
+ 			var rect = v.paper.rect( g1*cfg.dist, 0, gw* cfg.dist, cfg.dist/2 );
+			rect.attr( {
+				"stroke" : "white", 
+				"stroke-width" : 5,
+				fill : "white",
+				});
+			
+			rect.transform( cfg.previewTransform );
+			
+			this.gates[ 0 ] = { el : rect, pointA : [g1, 0],pointB : [g1 + gw, 0]  };
+			 
+			 var rect = v.paper.rect( g1*cfg.dist, cfg.rowCount *cfg.dist, gw* cfg.dist, cfg.dist/2 );
+			rect.attr( {
+				"stroke" : "white", 
+				"stroke-width" : 5,
+				fill : "white"
+				});
+			
+			rect.transform( cfg.previewTransform );
+
+			this.gates[ 1 ] = { el : rect, pointA : [g1, cfg.rowCount],pointB : [g1 + gw, cfg.rowCount]  };
+			
+			*/
+		},
+		
+		positionGates : function ( gate ) {
+/*
+		if ( this.isOutside( gate.pointA, this.region ) && this.isOutside( gate.pointB, this.region) ) {
+			
+				gate.el.hide();
+				return;
+			};
+			
+			gate.el.show();
+			
+            var offsetX = this.region[0] * this.dist - this.offset [ 0 ];
+            var offsetY = this.region[1] * this.dist - this.offset [ 1 ];
+
+			
+			var at = {
+				x : gate.pointA[0] * this.dist - offsetX, 
+				y : gate.pointB[1] * this.dist  - offsetY 
+			}
+			
+			gate.el.attr( at )
+*/
+		},
 		
 		addTrap : function ( coords, color ) {
 			var obj = {
@@ -551,18 +745,38 @@
 				cy : trap.point[1] * this.dist  - offsetY 
 			}
 			
-			console.log( "trap2", offsetX  , offsetY);
+			//console.log( "trap2", offsetX  , offsetY);
 			
 			
-			console.log("trap", at, trap.el.node );
+			//console.log("trap", at, trap.el.node );
 			trap.el.attr( at )
 			
 			//trap.el.toFront();
 		},
+		
+		noRenderAddLine : function ( coords, color ) {
+		            if (this.isOutside2(coords, this.region)) {
+                var updated = this.updateRegion(coords);
+            }
+
+
+			var offsetX = this.region[0] * this.dist - this.offset [ 0 ];
+            var offsetY = this.region[1] * this.dist - this.offset [ 1 ];
+
+            var path = ["M", coords[0] * this.dist - offsetX , coords[1] * this.dist - offsetY, "L", coords[2] * this.dist - offsetX, coords[3] * this.dist - offsetY];
+
+            this.lines.push({
+                point: coords,
+                color: color,
+                path: path
+            });
+		},
         addLine: function(coords, color) {
             //coords = [ "m", 0,0, "l", 0,0 ];
 
-
+			if ( this.noRender ) return this.noRenderAddLine( coords, color );
+			
+			
             if (this.isOutside2(coords, this.region)) {
                 var updated = this.updateRegion(coords);
                 if ( updated ) this.repaintTable();
@@ -581,7 +795,7 @@
             });
 
 
-            console.log("AddLine:", coords, path, this.xlines);
+            //console.log("AddLine:", coords, path, this.xlines);
 
 			var path = [ "M", coords[2] *  this.dist - offsetX, coords[3] *  this.dist - offsetY, "M", coords[0] * this.dist - offsetX , coords[1] *  this.dist - offsetY];
             var line = v.paper.path(path); //"M" +  coords[0] * 10 + "," +  coords[ 1 ] * 10 + "L" + coords[2] *10 +","+ coords[3]*10  );
@@ -687,9 +901,7 @@
             newRegion[3] = newRegion[1] + h;
 
 
-            console.log("New Region", {
-                newRegion, oldRegion: this.region, line
-            });
+            //console.log("New Region", {newRegion, oldRegion: this.region, line});
             this.region = newRegion;
 
             if (this.viewoport) {}
@@ -699,12 +911,83 @@
     }
 
 
+    //: Dummy server to simulate receiving lines
+    var server = {
+        getRandomPoint: function(point) {
+            var x = 1 - Math.floor(3 * Math.random());
+            var y = 1 - Math.floor(3 * Math.random());
+            return [point[0] + x, point[1] + y];
+        },
+
+        simulate: function() {
+            do {
+                var point = this.getRandomPoint(state.start);
+            } while (
+                ((point[0] == state.start[0]) && (point[1] == state.start[1])) || (point[0] < 0 || point[0] >= cfg.colCount) || (point[1] < 0 || point[1] >= cfg.rowCount)
+            );
+
+            state.color = 1 - state.color
+
+            api.addMove(state.start, point, state.color);
+
+            state.start = point;
+
+        },
+
+
+        visited: {},
+
+        simulate2: function() {
+            var prefix = state.start.join(",") + ",";
+
+            do {
+                var start = [];
+                start[0] = Math.floor(Math.random() * cfg.colCount); //this.getRandomPoint(state.start);
+                start[1] = Math.floor(Math.random() * cfg.rowCount);
+
+                var point = this.getRandomPoint(start);
+            } while (
+                this.visited[start.join(",") + "," + prefix + point.join(",")] ||
+                (point[0] < 0 || point[0] >= cfg.colCount) || (point[1] < 0 || point[1] >= cfg.rowCount)
+            );
+
+
+            //console.log(start.join(",") + "," + point.join(","));
+            this.visited[start.join(",") + "," + point.join(",")] = true;
+
+            state.color = 1 - state.color
+
+            api.addMove(start, point, state.color);
+
+            state.start = point;
+
+        },
+
+        start: function() {
+
+
+            //this.fill( );
+            window.setInterval(function() {
+                server.simulate();
+            }, 100)
+
+        },
+
+        fill: function(count) {
+            count = count || 2000;
+            for (var i = 0; i < count; i++)
+                server.simulate();
+        }
+    }
+
 
     var api = {
 
 		startGame : function ( rowCount, colCount, startX, startY) {
 			cfg.rowCount = rowCount;
-			cfg.colCount = colCount;			
+			cfg.colCount = colCount;
+			cfg.gatePosition = Math.floor( cfg.colCount / 2 ) - 7
+			cfg.gateWidth = 14;
 			
 			this.ballPosition = [ startX, startY ];
 			ui.main.start();
@@ -719,22 +1002,34 @@
 			this.ballPosition = [ pointX, pointY ];
 		},
 		
+		addColors : function ( nr1, nr2, total ) {
+			var hue = ( ( 360 / total ) * nr1 ) % 360; 
+			cfg.colors[ 0 ]  = "hsla("+hue + ", 74%, 40%, 1)";
+			
+			var hue = ( ( 360 / total ) * nr2 ) %360; 
+			cfg.colors[ 1 ]  = "hsla("+hue + ", 34%, 39%, 1)";
+
+		},
 		
         restart: function() {
             v.lines.remove();
 
             state.lines = [];
 
-            state.start = [1, 2];
+            //state.start = [1, 2];
         },
 
         addMove: function(start, point, color) {
             state.lines.push([start[0], start[1], point[0], point[1], color]);
 
-            ui.moves.addLine([start[0], start[1], point[0], point[1]], color);
+            //ui.moves.addLine([start[0], start[1], point[0], point[1]], color);
 
-            x.addLine([start[0], start[1], point[0], point[1]], color);
-        }
+            ui.arena.addLine([start[0], start[1], point[0], point[1]], color);
+        },
+		
+		addTrap : function ( pointX, pointY ) {
+			ui.traps.addTrap([pointX, pointY], "#C0FFEE");
+		},
     }
 
 	
@@ -743,5 +1038,11 @@
     //: start the rendering and the server
     //
 	
-	//for ( var i = 0; i<200; i++ ) {	ui.traps.addTrap( [ Math.floor( Math.random() * 200 ),Math.floor( Math.random() * 200 ) ], "#C0FFEE" );}
+	api.startGame( 400, 200, 100,200 );
+	
+	api.addColors( Math.floor( Math.random() * 20 ), Math.floor( Math.random() * 20 ), 20 );
+	
+	state.start = api.ballPosition;
+	server.start();
+	for ( var i = 0; i<200; i++ ) {	api.addTrap(  Math.floor( Math.random() * 200 ),Math.floor( Math.random() * 200 ) );}
 	</script>
