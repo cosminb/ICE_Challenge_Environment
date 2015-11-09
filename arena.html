@@ -448,11 +448,11 @@
 				var gw = cfg.gateWidth;
 				var dist = arena.dist
 				
-				var item = v.paper.rect( g1*dist + 10, 0, gw* dist - 20, dist* 0.75 );
+				var item = v.paper.rect( g1*dist + 10, 0, gw* dist - 20, dist* 0.25 );
 				item.attr( {
-					"stroke" : "white", 
+					"stroke" : "blue", 
 					"stroke-width" : 5,
-					fill : "white",
+					fill : "blue",
 					});
 				item.attr( {
 					"clip-rect" : [arena.offset[0], arena.offset[1], arena.rowCount * arena.dist, arena.colCount * arena.dist].join(" ")
@@ -533,9 +533,9 @@
         region: [0, 0, 5, 5],
 		offset : [ 300, 0 ],
 		
-		colCount : 20,
-		rowCount : 20, 
-		dist : 50, 
+		colCount : 50,
+		rowCount : 30, 
+		dist : 20, 
 		
 		init : function ( ) {
 		
@@ -1004,7 +1004,7 @@
 		
 		addColors : function ( nr1, nr2, total ) {
 			var hue = ( ( 360 / total ) * nr1 ) % 360; 
-			cfg.colors[ 0 ]  = "hsla("+hue + ", 74%, 40%, 1)";
+			cfg.colors[ 0 ]  = "hsla("+hue + ", 74%	, 40%, 1)";
 			
 			var hue = ( ( 360 / total ) * nr2 ) %360; 
 			cfg.colors[ 1 ]  = "hsla("+hue + ", 34%, 39%, 1)";
@@ -1038,7 +1038,7 @@
     //: start the rendering and the server
     //
 	
-	api.startGame( 400, 200, 100,200 );
+	api.startGame( 200, 400, 100,200 );
 	
 	api.addColors( Math.floor( Math.random() * 20 ), Math.floor( Math.random() * 20 ), 20 );
 	
