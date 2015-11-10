@@ -65,7 +65,7 @@
             v.lines = v.paper.set();
 
 			//compute the zoom level for preview
-            var z = 140 / (cfg.rowCount * 4);
+            var z = 250 / (cfg.rowCount * 4);
             cfg.previewTransform = ["s", z, z, 0, 0, "t", 20 / z, 0]
         },
         render: function() {
@@ -470,7 +470,7 @@
 
         lines: [],
         region: [0, 0, 5, 5],
-		offset : [ 20, 160],
+		offset : [ 20, 280],
 
 		colCount : 32,
 		rowCount : 20,
@@ -506,9 +506,9 @@
 
                 this.rectangle.attr({
 
-                    'stroke': "red",
-                    'stroke-width': 5,
-                    'stroke-linecap': "round"
+                    'stroke': "green",
+                    'stroke-width': 4,
+					'fill' : "hsla(100,200,50,0.3)"
                 });
 
                 if (!this.set) this.set = v.paper.set();
@@ -1000,7 +1000,7 @@
     //
 
 	//*
-	api.startGame( 200, 400, 200,100 );
+	api.startGame( 400, 800, 200,100 );
 
 	api.addColors( Math.floor( Math.random() * 20 ), Math.floor( Math.random() * 20 ), 20 );
 
