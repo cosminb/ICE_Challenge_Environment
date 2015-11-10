@@ -69,7 +69,7 @@
             cfg.previewTransform = ["s", z, z, 0, 0, "t", 0, 0]
         },
         render: function() {
-            ui.board.render();
+            ui.preview.board.render();
         }
     }
 
@@ -211,161 +211,11 @@
             return line;
         },
 	}
-    ui.board = {
-
-        render: function() {
-            this.renderPreview();
-
-        },
-
-        renderPreview: function() {
-
-
-  //          v.grid = v.paper.set();
-
-			/*
-            this.renderGrid(v.grid, {
-                'stroke': "rgb(170,170,170)",
-                'stroke-width': 0.2
-            }, 4)
-			*/
-			/*
-			ui.preview.board.renderGrid(v.grid, {
-                'stroke': "rgb(170,170,170)",
-                'stroke-width': 0.2
-            }, 4)
-*/
-			//this.renderBorder();
-
-			//ui.preview.board.renderBorder( v.grid );
-
-		//	v.grid.transform(cfg.previewTransform);
-
-
-		ui.preview.board.render();
-		},
-
-		renderBorder : function ( ) {
- 			var rect = v.paper.rect( 0, 0, cfg.colCount* 4, cfg.rowCount*4 );
-			rect.attr( {
-				"stroke" : "white",
-				"stroke-width" : 1
-				});
-
-			rect.transform( cfg.previewTransform );
-
-			var g1 = cfg.gatePosition;
-			var gw = cfg.gateWidth;
-
- 			var rect = v.paper.rect( g1*4, 0, gw* 4, 2 );
-			rect.attr( {
-				"stroke" : "white",
-				"stroke-width" : 5,
-				fill : "white",
-				});
-
-			rect.transform( cfg.previewTransform );
-
-
-			 var rect = v.paper.rect( g1*4, cfg.rowCount *4 - 1, gw* 4, 2 );
-			rect.attr( {
-				"stroke" : "white",
-				"stroke-width" : 5
-				});
-
-			rect.transform( cfg.previewTransform );
-
-
-/*
-                var x1 = i * dist;
-                var y1 = 0;
-
-                var x2 = x1;
-                var y2 = cfg.rowCount * dist - dist;
-                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
-                var line = paper.path(pathStr);
-*/
-				v.grid.push( rect );
-		},
-
-        renderGrid: function(set, style, dist) {
-
-            var paper = v.paper;
-
-
-            for (var i = 0; i < cfg.colCount; i++) {
-                var x1 = i * dist;
-                var y1 = 0;
-
-                var x2 = x1;
-                var y2 = cfg.rowCount * dist - dist;
-                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
-                var line = paper.path(pathStr);
-
-                set.push(line);
-
-                line.attr(style);
-            }
 
 
 
-            for (var i = 0; i < cfg.rowCount; i++) {
-                var y1 = i * dist;
-                var x1 = 0;
-
-                var y2 = y1;
-                var x2 = cfg.colCount * dist - dist;
-
-                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
-                var line = paper.path(pathStr);
-
-                set.push(line);
-
-                line.attr(style);
-            }
-        }
-    }
-
-    ui.moves = {
-        addLine: function(coords, color) {
-
-            var l1 = this.drawLine(v.grid, coords, color, 4, {
-                "stroke-width": 1
-            });
-            v.grid.push(l1);
-            v.lines.push(l1);
-            l1.transform(cfg.previewTransform)
-        },
-
-
-        drawLine: function(set, coords, color, dist, attr) {
-
-            var paper = v.paper;
-
-            var points = [];
-            for (var i = 0; i < 4; i++)
-                points[i] = coords[i] * dist;
-
-            var pathStr = ["M", points[2], points[3], "L", points[0], points[1]];
-
-            var line = paper.path(pathStr);
-
-            line.attr({
-                'stroke': cfg.colors[color],
-                'stroke-width': 1,
-                'stroke-linecap': "round"
-            })
-
-            return line;
-        },
-
-
-    }
-
-    ui.traps = {
+    ui.preview.traps = {
         addTrap: function(coords, color) {
-
-			ui.arena.addTrap( [].concat( coords ), color );
 
             var l1 = this.drawTrap(v.grid, coords, color, 4, {
                 "stroke-width": 1,
@@ -396,6 +246,11 @@
             return trap;
         },
     }
+
+
+
+
+
 
 
 	ui.x = { };
@@ -449,11 +304,11 @@
 				var dist = arena.dist
 				var clipRect =  [arena.offset[0], arena.offset[1], arena.colCount * arena.dist, arena.rowCount * arena.dist].join(" ");
 
-				var g1 = cfg.gatePosition;
-				var gw = cfg.gateWidth;
+				var gatePosition = cfg.gatePosition;
+				var gateWidth = cfg.gateWidth;
 
 
-				var item = v.paper.rect( 0, 0, dist* 0.25, gw* dist );
+				var item = v.paper.rect( 0, 0, dist* 0.25, gateWidth* dist );
 
 
 				item.attr( {
@@ -467,10 +322,10 @@
 				} );
 
 
-				this.gates[ 0 ] = { el : item, pointA : [0, g1],pointB : [0, g1 + gw]  };
+				this.gates[ 0 ] = { el : item, pointA : [0, gatePosition],pointB : [0, gatePosition + gateWidth]  };
 
 
-				 var item = v.paper.rect( 0, 0, dist * 0.75 , gw* dist);
+				 var item = v.paper.rect( 0, 0, dist * 0.75 , gateWidth* dist);
 				item.attr( {
 					"stroke" : "white",
 					"stroke-width" : 5,
@@ -481,7 +336,7 @@
 					"clip-rect" : clipRect
 				} );
 
-				this.gates[ 1 ] = { el : item, pointA : [cfg.colCount - 0.25, g1],pointB : [cfg.colCount -0.25, g1 + gw] };
+				this.gates[ 1 ] = { el : item, pointA : [cfg.colCount - 0.25, gateWidth],pointB : [cfg.colCount -0.25, gatePosition + gateWidth] };
 			},
 		},
 		grid : {
@@ -500,6 +355,8 @@
 				var rowCount = arena.rowCount;
 				var colCount = arena.colCount;
 
+				this.texts = [ [],[], [], [] ];
+
 				for (var i = 0; i <= colCount; i++) {
 					var x1 = i * dist + offsetX;
 					var y1 = offsetY;
@@ -512,6 +369,12 @@
 					set.push(line);
 
 					line.attr(style);
+
+					text = paper.text( x1, y1-5, i );
+					this.texts[0].push( text );
+
+					text = paper.text( x2, y2+5, i );
+					this.texts[1].push( text );
 				}
 
 
@@ -529,8 +392,31 @@
 					set.push(line);
 
 					line.attr(style);
+
+
+					text = paper.text( x1-7, y1, i );
+					this.texts[2].push( text );
+
+					text = paper.text( x2+7, y2, i );
+					this.texts[3].push( text );
+
+				}
+			},
+
+			updateTexts : function  ( startX, startY ) {
+				for ( var i = 0; i< 2; i++) {
+					for ( var j=0; j< this.texts[i].length; j++ ) {
+						this.texts[i][j].attr( { text : startX + j } )
+					}
+				}
+
+				for ( var i = 2; i< 4; i++) {
+					for ( var j=0; j< this.texts[i].length; j++ ) {
+						this.texts[i][j].attr( { text : startY + j } )
+					}
 				}
 			}
+
 		}
 	}
 
@@ -541,11 +427,11 @@
 
         lines: [],
         region: [0, 0, 5, 5],
-		offset : [ 0, 150],
+		offset : [ 20, 160],
 
-		colCount : 40,
-		rowCount : 23,
-		dist : 20,
+		colCount : 32,
+		rowCount : 20,
+		dist : 25,
 
 		init : function ( ) {
 
@@ -634,6 +520,7 @@
 
 
 			ui.x.board.refresh();
+			ui.x.board.grid.updateTexts( this.region[0], this.region[1] );
 
         },
 
@@ -990,7 +877,7 @@
             //this.fill( );
             window.setInterval(function() {
                 server.simulate();
-            }, 0)
+            }, 100)
 
         },
 
@@ -1043,13 +930,15 @@
         addMove: function(start, point, color) {
             state.lines.push([start[0], start[1], point[0], point[1], color]);
 
-            ui.moves.addLine([start[0], start[1], point[0], point[1]], color);
+            ui.preview.moves.addLine([start[0], start[1], point[0], point[1]], color);
 
             ui.arena.addLine([start[0], start[1], point[0], point[1]], color);
         },
 
 		addTrap : function ( pointX, pointY ) {
-			ui.traps.addTrap([pointX, pointY], "#C0FFEE");
+			ui.preview.traps.addTrap([pointX, pointY], "#C0FFEE");
+			ui.arena.addTrap( [pointX, pointY], "#C0FFEE");
+
 		},
     }
 
