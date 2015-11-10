@@ -66,7 +66,7 @@
 
 			//compute the zoom level for preview
             var z = 140 / (cfg.rowCount * 4);
-            cfg.previewTransform = ["s", z, z, 0, 0, "t", 0, 0]
+            cfg.previewTransform = ["s", z, z, 0, 0, "t", 20 / z, 0]
         },
         render: function() {
             ui.preview.board.render();
@@ -110,17 +110,16 @@
 
 
 
-			var g1 = cfg.gatePosition;
-			var gw = cfg.gateWidth;
+			var gw = cfg.gateEnd - cfg.gateStart;
 
- 			var rect = v.paper.rect( 0, g1*dist, dist/2 , gw* dist);
+ 			var rect = v.paper.rect( 0, cfg.gateStart*dist, dist/2 , gw* dist);
 			rect.attr( {
 				fill : "white",
 			});
 			rect.attr ( style );
 			set.push( rect );
 
-			var rect = v.paper.rect(  cfg.colCount *dist, g1*dist, dist/2 , gw* dist);
+			var rect = v.paper.rect(  cfg.colCount *dist, cfg.gateStart*dist, dist/2 , gw* dist);
 			rect.attr( {
 				fill : "white",
 			});
@@ -272,12 +271,36 @@
 			refresh : function (  ) {
 				this.refreshGate( this.gates[ 0 ] );
 				this.refreshGate( this.gates[ 1 ] );
+				this.refreshGate( this.gates[ 2 ] );
+
 			},
 
+			lineInside : function ( pointA, pointB, region )  {
+				//check if a vertical line ( with line[1] < line[3] ) is visible inside the region )
+				
+				var inside = ( region[0] <= pointA[0] 
+							&& region[2] >= pointA[0] 
+							
+							
+							&& region[1] <= pointB[1]
+							&& region[3] >= pointA[1]
+							);
+							
+				console.log( "lineinside", region[0] <= pointA[0], 
+							region[2] >= pointA[0] ,
+							
+							
+							region[1] <= pointB[1],
+							region[3] >= pointA[1], pointA, pointB, region.join(",") );
+				return inside;
+			},
 			refreshGate : function ( gate ) {
 				var arena = ui.arena;
 
-				if ( arena.isOutside( gate.pointA, arena.region ) && arena.isOutside( gate.pointB, arena.region) ) {
+				var isInside = this.lineInside ( gate.pointA, gate.pointB, arena.region );
+				
+				console.log( { isInside } );
+				if ( !isInside ) {
 					gate.el.hide();
 					return;
 				};
@@ -290,7 +313,7 @@
 
 				var at = {
 					x : gate.pointA[0] * arena.dist - offsetX,
-					y : gate.pointB[1] * arena.dist  - offsetY + 10
+					y : gate.pointA[1] * arena.dist  - offsetY
 				}
 
 				gate.el.attr( at )
@@ -304,8 +327,8 @@
 				var dist = arena.dist
 				var clipRect =  [arena.offset[0], arena.offset[1], arena.colCount * arena.dist, arena.rowCount * arena.dist].join(" ");
 
-				var gatePosition = cfg.gatePosition;
-				var gateWidth = cfg.gateWidth;
+				var gatePosition = cfg.gateStart;
+				var gateWidth = cfg.gateEnd - cfg.gateStart;
 
 
 				var item = v.paper.rect( 0, 0, dist* 0.25, gateWidth* dist );
@@ -322,7 +345,7 @@
 				} );
 
 
-				this.gates[ 0 ] = { el : item, pointA : [0, gatePosition],pointB : [0, gatePosition + gateWidth]  };
+				this.gates[ 0 ] = { el : item, pointA : [0, cfg.gateStart],pointB : [0, cfg.gateEnd]  };
 
 
 				 var item = v.paper.rect( 0, 0, dist * 0.75 , gateWidth* dist);
@@ -336,8 +359,24 @@
 					"clip-rect" : clipRect
 				} );
 
-				this.gates[ 1 ] = { el : item, pointA : [cfg.colCount - 0.25, gateWidth],pointB : [cfg.colCount -0.25, gatePosition + gateWidth] };
-			},
+				this.gates[ 1 ] = { el : item, pointA : [cfg.colCount - 0.25, cfg.gateStart],pointB : [cfg.colCount -0.25, cfg.gateEnd] };
+
+				
+				
+				 var item = v.paper.rect( 0, 0, dist / 2 , cfg.rowCount * dist );
+				item.attr( {
+					"stroke" : "white",
+					"stroke-width" : 5,
+					fill : "white"
+					});
+
+				item.attr( {
+					"clip-rect" : clipRect
+				} );
+
+				this.gates[ 2 ] = { el : item, pointA : [Math.floor( cfg.colCount / 2  )- 0.25 , 0],pointB : [Math.floor( cfg.colCount/2)  - 0.25, cfg.rowCount] };
+
+				},
 		},
 		grid : {
 			render : function (set ) {
@@ -370,10 +409,12 @@
 
 					line.attr(style);
 
-					text = paper.text( x1, y1-5, i );
+					text = paper.text( x1, y1-10, i );
+					text.attr( { fill : "#dddddd" } );
 					this.texts[0].push( text );
 
-					text = paper.text( x2, y2+5, i );
+					text = paper.text( x2, y2+10, i );
+					text.attr( { fill : "#dddddd" } );
 					this.texts[1].push( text );
 				}
 
@@ -394,10 +435,12 @@
 					line.attr(style);
 
 
-					text = paper.text( x1-7, y1, i );
+					text = paper.text( x1-10, y1, i );
+					text.attr( { fill : "#dddddd" } );
 					this.texts[2].push( text );
 
-					text = paper.text( x2+7, y2, i );
+					text = paper.text( x2+10, y2, i );
+					text.attr( { fill : "#dddddd" } );
 					this.texts[3].push( text );
 
 				}
@@ -431,11 +474,13 @@
 
 		colCount : 32,
 		rowCount : 20,
-		dist : 25,
+		dist : 35,
 
 		init : function ( ) {
 
 
+				ui.x.board.render();
+				
                 //this.drawBoard();
 
                 this.paintedLines = []
@@ -470,7 +515,6 @@
 
                 this.rectangle.transform(cfg.previewTransform);
 
-				ui.x.board.render();
 				//this.drawGates();
 		},
 
@@ -805,7 +849,7 @@
 
             if ( newRegion[3] > cfg.rowCount ) {
 				newRegion[3] = cfg.rowCount;
-				newRegion[1] = newRegion[1] - h;
+				newRegion[1] = newRegion[3] - h;
             }
 
 
@@ -894,13 +938,20 @@
 		startGame : function ( rowCount, colCount, startX, startY) {
 			cfg.rowCount = rowCount;
 			cfg.colCount = colCount;
-			cfg.gatePosition = Math.floor( cfg.rowCount / 2 ) - 7
-			cfg.gateWidth = 14;
-
+			
+			
+			cfg.gateStart = Math.floor(2/5*rowCount);
+			cfg.gateEnd   = Math.floor(3/5*rowCount);
+			
+			cfg.startPoint = [ startX, startY ];
+			
+			
+			ui.arena.region = [ startX - ui.arena.rowCount / 2, startY - ui.arena.colCount / 2, startX + ui.arena.rowCount / 2, startY + ui.arena.colCount / 2  ]
+			
 			this.ballPosition = [ startX, startY ];
 			ui.main.start();
 
-
+			
 
 		},
 		addNextMove : function (  color, pointX, pointY ) {
@@ -915,7 +966,7 @@
 			cfg.colors[ 0 ]  = "hsla("+hue + ", 74%	, 40%, 1)";
 
 			var hue = ( ( 360 / total ) * nr2 ) %360;
-			cfg.colors[ 1 ]  = "hsla("+hue + ", 34%, 39%, 1)";
+			cfg.colors[ 1 ]  = "hsla("+hue + ", 100%, 29%, 1)";
 
 		},
 
@@ -948,11 +999,17 @@
     //: start the rendering and the server
     //
 
-	api.startGame( 200, 400, 50,100 );
+	//*
+	api.startGame( 200, 400, 200,100 );
 
 	api.addColors( Math.floor( Math.random() * 20 ), Math.floor( Math.random() * 20 ), 20 );
 
+               var updated = ui.arena.updateRegion([200,100,200,100]);
+               ui.arena.repaintTable();
+ 			
 	state.start = api.ballPosition;
 	server.start();
 	for ( var i = 0; i<200; i++ ) {	api.addTrap(  Math.floor( Math.random() * 200 ),Math.floor( Math.random() * 200 ) );}
+	
+	//*/
 	</script>
