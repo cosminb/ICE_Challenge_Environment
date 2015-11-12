@@ -17,7 +17,7 @@
 </svg>
 <div id="canvas_container"></div>
 
-
+<canvas id="previewCanvas" width=2000 height=2000 style='width:2000px; height:2000px; position : absolute; left : 1200px; top : 300px;'> </canvas>
 <div id='debug' style='font : Helvetica;  position:absolute; left : 450px; top : 10px; height : 170px; width : 400px;overflow : hidden;z-index:100; font-size:13px; color : rgba(200,200,200,0.3);'> </div>
 <script src="libs/raphael-min.js"></script>
 <script src="libs/RaphaelJS.group/js/raphael.group.js"></script>
@@ -77,6 +77,50 @@
 
 
 
+	
+	ui.cPreview = {
+		init : function ( )  {
+			ui.c_preview.init();
+			
+			/*
+			
+					init : function ( )  {
+			this.canvas = document.getElementById('previewCanvas');
+			if (this.canvas.getContext){
+			  this.ctx = this.canvas.getContext('2d');
+			}
+				*/
+		},
+		
+		addLine : function  (coords, color ) {
+		
+			ui.c_preview.moves.addLine( coords, color ) ;
+			
+			/*
+		    var points = [];
+            for (var i = 0; i < 4; i++)
+                points[i] = coords[i] * 10;
+
+			this.ctx.beginPath();
+			this.ctx.moveTo( points[2], points[3] );
+			this.ctx.lineTo( points[0], points[1] );
+			
+			this.ctx.lineWidth = 1;
+
+      // set line color
+      this.ctx.strokeStyle = '#ff0000';
+      //context.stroke();
+	  
+	  
+			this.ctx.stroke();
+						console.log( points, this.ctx);
+
+            //    'stroke': cfg.colors[color],
+            */
+		}
+	}
+
+	
     ui.preview = {
         render: function() {
             ui.preview.grid.render();
@@ -189,6 +233,7 @@
 
             v.grid.push(l1);
 
+			ui.cPreview.addLine( coords, color );
         },
 
 
@@ -219,7 +264,7 @@
     ui.preview.traps = {
         addTrap: function(coords, color) {
 
-            var l1 = this.drawTrap(v.grid, coords, color, 4, {
+            var l1 = this.drawTrap(v.grid, coords, color, 1, {
                 "stroke-width": 1,
                 stroke: "red"
             });
@@ -238,12 +283,6 @@
 
 
             var trap = paper.ellipse(points[0], points[1], 1, 1);
-
-            trap.animate({
-                rx: 10,
-                ry: 10
-            }, 200);
-            trap.attr(attr);
 
             return trap;
         },
@@ -701,7 +740,7 @@
 
         lines: [],
         region: [0, 0, 5, 5],
-        offset: [20, 190],
+        offset: [20, 210],
 
         colCount: 32,
         rowCount: 20,
@@ -936,11 +975,11 @@
                 server.simulate();
         },
         dummyTest: function() {
-            api.startGame(400, 800, 200, 100);
+            api.startGame(20, 40, 10, 10);
 
             api.addColors(Math.floor(Math.random() * 20), Math.floor(Math.random() * 20), 20);
 
-            var updated = ui.arena.updateRegion([200, 100, 200, 100]);
+            var updated = ui.arena.updateRegion([10,10,10,10]);
             ui.arena.repaintTable();
 
             state.start = api.ballPosition;
@@ -970,7 +1009,7 @@
             this.ballPosition = [startX, startY];
             ui.main.start();
 
-           var updated = ui.arena.updateRegion([200, 100, 200, 100]);
+           var updated = ui.arena.updateRegion([startX, startY, startX, startY]);
             ui.arena.repaintTable();
 
 
@@ -1043,7 +1082,176 @@
 	}
 
 
+	var draw = {
+		line : function ( ctx, x1, y1, x2, y2, style ) { 
+					console.log( arguments );
+			ctx.lineWidth = style.width || 1;
+
+			ctx.strokeStyle = style.color || "green";
+	  
+			ctx.beginPath();
+			ctx.moveTo( x1, y1 );
+			ctx.lineTo( x2, y2 );
+			
+			ctx.stroke();
+		},
+		
+		rect : function ( ctx, x1, y1, x2, y2, style ) {
+		
+			console.log( arguments );
+			ctx.lineWidth = style["stroke-width"] || 1;
+
+			ctx.strokeStyle = style.stroke || "#FFFFFF";
+	  
+			ctx.strokeRect( x1, y1, x2, y2 );
+		}
+	}
+	
+	ui.c_preview = {
+        render: function() {
+			this.init();
+            ui.c_preview.grid.render();
+        },
+		
+		init : function ( ) {
+			this.canvas = document.getElementById('previewCanvas');
+			if (this.canvas.getContext){
+			  this.ctx = this.canvas.getContext('2d');
+			}
+			
+			v.ctx = this.ctx;
+			
+			v.ctx.scale(0.2, 0.2 );
+			            ui.c_preview.board.render();
+
+		}
+    }
+
+    ui.c_preview.board = {
+        gridStyle: {
+            'stroke': "rgba(170,170,170, 0.2)",
+            'stroke-width': 0.2
+        },
+
+        borderStyle: {
+            "stroke": "rgba(255, 255, 255, 0.7 )",
+            "stroke-width": 1
+        },
+        dist: 15,
+
+        render: function() {
+
+            this.renderGrid(this.gridStyle, this.dist);
+            this.renderBorder(this.borderStyle, this.dist);
+
+        },
+        renderBorder: function(style, dist) {
+            var rect = draw.rect( v.ctx, 0, 0, cfg.colCount * dist, cfg.rowCount * dist, style);
+
+            var gw = cfg.gateEnd - cfg.gateStart;
+
+            var rect = draw.rect(v.ctx, 0, cfg.gateStart * dist, dist / 2, gw * dist, style );
+            /*rect.attr({
+                fill: "white",
+            });
+            */
+			
+			
+            var rect = draw.rect(v.ctx, cfg.colCount * dist, cfg.gateStart * dist, dist / 2, gw * dist, style );
+            
+
+            var x = cfg.colCount * dist / 2;
+            var maxY = cfg.rowCount * dist;
+            var path = ["M", x, 0, "L", x, maxY]
+            var item = draw.line( v.ctx, x, 0, x, maxY, style ) 
+            
+        },
+
+        renderGrid: function(style, dist) {
+
+
+            for (var i = 0; i < cfg.colCount; i++) {
+                var x1 = i * dist;
+                var y1 = 0;
+
+                var x2 = x1;
+                var y2 = cfg.rowCount * dist - dist;
+                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
+                var line = draw.line(v.ctx, x1, y1, x2, y2, style ) //paper.path(pathStr);
+
+            }
+
+
+
+            for (var i = 0; i < cfg.rowCount; i++) {
+                var y1 = i * dist;
+                var x1 = 0;
+
+                var y2 = y1;
+                var x2 = cfg.colCount * dist - dist;
+
+                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
+                var line = draw.line(v.ctx, x1, y1, x2, y2, style ) //paper.path(pathStr);
+
+            }
+        },
+    }
+
+    ui.c_preview.moves = {
+        addLine: function(coords, color) {
+
+            var l1 = this.drawLine(coords, ui.c_preview.board.dist, {
+                "stroke-width": 1, 
+				"stroke" : cfg.colors[ color ]
+            });
+
+        },
+
+
+        drawLine: function( coords, dist, attr) {
+
+            var points = [];
+            for (var i = 0; i < 4; i++)
+                points[i] = coords[i] * dist;
+
+			draw.line( v.ctx, points[0], points[1], points[2], points[3], attr );
+        },
+    }
+
+
+
+    ui.c_preview.traps = {
+        addTrap: function(coords, color) {
+
+            var l1 = this.drawTrap(v.grid, coords, color, 1, {
+                "stroke-width": 1,
+                stroke: "red"
+            });
+            v.grid.push(l1);
+            l1.transform(cfg.previewTransform)
+
+        },
+
+        drawTrap: function(set, coords, color, dist, attr) {
+
+            var paper = v.paper;
+
+            var points = [];
+            for (var i = 0; i < 4; i++)
+                points[i] = coords[i] * dist;
+
+
+            var trap = paper.ellipse(points[0], points[1], 1, 1);
+
+            return trap;
+        },
+    }
+
+
+
 
     //: test the rendering and the server
     server.dummyTest();
+	ui.cPreview.init();
+		
 </script>
