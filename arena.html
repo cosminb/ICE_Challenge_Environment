@@ -630,13 +630,20 @@
             var offsetX = arena.region[0] * arena.dist - arena.offset[0];
             var offsetY = arena.region[1] * arena.dist - arena.offset[1];
 
+ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
+	
+                path[value.color].push("M", value.point[0] * arena.dist - offsetX, value.point[1] * arena.dist - offsetY, "L", value.point[2] * arena.dist - offsetX, value.point[3] * arena.dist - offsetY);
 
+});
+
+/*
             for (var i in arena.lines) {
                 value = arena.lines[i];
                 if (geo.isOutside(value.point, arena.region)) continue;
 
-                path[value.color].push("M", value.point[0] * arena.dist - offsetX, value.point[1] * arena.dist - offsetY, "L", value.point[2] * arena.dist - offsetX, value.point[3] * arena.dist - offsetY);
+                path[value.color].push("M", value.coords[0] - offsetX, value.coords[1]  - offsetY, "L", value.coords[2]  - offsetX, value.coords[3]  - offsetY);
             };
+*/
 
             if (path[0].length)
                 this.paintedLines[0].attr({
@@ -647,7 +654,6 @@
                 this.paintedLines[1].attr({
                     path: path[1]
                 });
-
 
 
         }
@@ -776,6 +782,9 @@
                 if (updated) this.repaintTable();
             }
 
+			
+			ui.arena.linesRepo.addLine( coords, color );
+			
             this.lines.push({
                 point: coords,
                 color: color,
@@ -830,6 +839,53 @@
         },
     }
 
+	ui.arena.linesRepo = {
+	
+		Line : function ( coords, color ) {
+			this.point = coords;
+			this.color = color;
+			
+			var c2 = [].concat( coords );
+			for ( var i in c2 ) 
+				c2[ i ] = c2[i] * ui.arena.dist;
+			
+			this.coords = c2;
+		},
+		addLine : function (coords, color) {
+			if ( !this.lines[coords[0]] ) this.lines[ coords[0] ] = [];
+			if ( !this.lines[coords[0]][coords[1]] ) this.lines[coords[0]][coords[1]] = []
+			
+			var line = new ui.arena.linesRepo.Line( coords, color );
+			
+			this.lines[coords[0]][coords[1]].push( line );
+		},
+		
+		eachLineInRegion : function ( region, callback ) {
+			var startX = region[0] - 1;
+			if (startX < 0) startX = 0;
+			var endX = region[2] + 1;
+
+			var startY = region[1] - 1;
+			if (startY < 0) startY = 0;
+			var endY = region[3] + 1;
+
+			
+			for ( var i = startX; i<=endX;i++ ) {
+				if ( !this.lines[i] ) continue;
+				var lines = this.lines[i];
+				for ( var j = startY ; j<= endY; j++ ) {
+					if ( !lines[j] ) continue;
+					
+					for ( var k = lines[j].length - 1; k>=0; k-- ) {
+						if (geo.isOutside(lines[j][k].point, region)) continue;
+						callback( lines[ j ][k] );
+					}
+				}
+			}
+		},
+		
+		lines : [],
+	}
 	var geo = {
 	        isOutside: function(line, region) {
 
@@ -931,7 +987,7 @@
             //this.fill( );
             window.setInterval(function() {
                 server.simulate();
-            }, 100)
+            }, ui.arena.duration)
 
         },
 
@@ -945,7 +1001,7 @@
             for (var i = 0; i < count; i++)
                 server.simulate2();
         },
-        dummyTest: function() {
+        dummyTest: function( skipStart ) {
             api.startGame(570, 1040, 10, 10);
 
             api.addColors(Math.floor(Math.random() * 20), Math.floor(Math.random() * 20), 20);
@@ -954,10 +1010,13 @@
             ui.arena.repaintTable();
 
             state.start = api.ballPosition;
-            server.start();
+
             for (var i = 0; i < 200; i++) {
                 api.addTrap(Math.floor(Math.random() * 200), Math.floor(Math.random() * 200));
             }
+			
+			if ( !skipStart ) 
+			            server.start();
         }
     }
 
@@ -986,7 +1045,7 @@
 
            var updated = ui.arena.updateRegion([startX, startY, startX, startY]);
             ui.arena.repaintTable();
-			//ui.c_preview.init();
+			ui.c_preview.init();
 
 
         },
@@ -1016,28 +1075,19 @@
             //state.start = [1, 2];
         },
 
+		linesCount : 0, 
         addMove: function(start, point, color) {
 		
-			logs.print( "Player :" +  (color+1) + " going from <u>" + point + "</u> to " + start );
-			
-			/*
-			if ( Math.random() < 0.5 ) 
-			logs.print( "Some dummy string that should look interesting" );
-			
-			*/
-			
-			/*/
-			if ( Math.random() < 0.5 ) 
-			logs.print( "Look <b>HERE</b>" );
-			//*/
+			logs.print( "Player :" +  (this.linesCount++) + " | " + (color+1) + " going from <u>" + point + "</u> to " + start );
+
 			
             state.lines.push([start[0], start[1], point[0], point[1], color]);
 
-            ui.preview.moves.addLine([start[0], start[1], point[0], point[1]], color);
+            //ui.preview.moves.addLine([start[0], start[1], point[0], point[1]], color);
 
             ui.arena.addLine([start[0], start[1], point[0], point[1]], color);
 			
-			//ui.c_preview.moves.addLine( [start[0], start[1], point[0], point[1]], color );
+			ui.c_preview.moves.addLine( [start[0], start[1], point[0], point[1]], color );
 
         },
 
@@ -1054,9 +1104,9 @@
 		traces : [],
 		i : 0,
 		print : function ( str ) {
-			this.traces.unshift( (this.i++ ) + ". " + str ) ;
+			//this.traces.unshift( (this.i++ ) + ". " + str ) ;
 			//if ( this.traces.length > 20 ) this.traces = this.traces.slice( 0 , 15 );
-			document.getElementById("debug").innerHTML = this.traces.join("</br>");//str + "<br />" + document.getElementById("debug").innerHTML;
+			//document.getElementById("debug").innerHTML = this.traces.join("</br>");//str + "<br />" + document.getElementById("debug").innerHTML;
 		}
 	}
 
