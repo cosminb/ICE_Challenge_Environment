@@ -68,6 +68,7 @@
             //compute the zoom level for preview
             var z = 170 / (cfg.rowCount * 4);
             cfg.previewTransform = ["s", z, z, 0, 0, "t", 20 / z, 0]
+			
         },
         render: function() {
             ui.preview.board.render();
@@ -233,7 +234,6 @@
 
             v.grid.push(l1);
 
-			ui.cPreview.addLine( coords, color );
         },
 
 
@@ -974,8 +974,13 @@
             for (var i = 0; i < count; i++)
                 server.simulate();
         },
+		fill2: function(count) {
+            count = count || 2000;
+            for (var i = 0; i < count; i++)
+                server.simulate2();
+        },
         dummyTest: function() {
-            api.startGame(20, 40, 10, 10);
+            api.startGame(570, 1040, 10, 10);
 
             api.addColors(Math.floor(Math.random() * 20), Math.floor(Math.random() * 20), 20);
 
@@ -1011,6 +1016,7 @@
 
            var updated = ui.arena.updateRegion([startX, startY, startX, startY]);
             ui.arena.repaintTable();
+			ui.c_preview.init();
 
 
         },
@@ -1060,6 +1066,9 @@
             ui.preview.moves.addLine([start[0], start[1], point[0], point[1]], color);
 
             ui.arena.addLine([start[0], start[1], point[0], point[1]], color);
+			
+			ui.c_preview.moves.addLine( [start[0], start[1], point[0], point[1]], color );
+
         },
 
         addTrap: function(pointX, pointY) {
@@ -1084,10 +1093,9 @@
 
 	var draw = {
 		line : function ( ctx, x1, y1, x2, y2, style ) { 
-					console.log( arguments );
 			ctx.lineWidth = style.width || 1;
 
-			ctx.strokeStyle = style.color || "green";
+			ctx.strokeStyle = style.stroke || "green";
 	  
 			ctx.beginPath();
 			ctx.moveTo( x1, y1 );
@@ -1097,8 +1105,6 @@
 		},
 		
 		rect : function ( ctx, x1, y1, x2, y2, style ) {
-		
-			console.log( arguments );
 			ctx.lineWidth = style["stroke-width"] || 1;
 
 			ctx.strokeStyle = style.stroke || "#FFFFFF";
@@ -1115,15 +1121,30 @@
 		
 		init : function ( ) {
 			this.canvas = document.getElementById('previewCanvas');
+
+			this.canvas.style.width = cfg.colCount * ui.c_preview.board.dist;
+			
+			var h = cfg.rowCount * ui.c_preview.board.dist
+			this.canvas.style.height = h ;
+			this.canvas.height = h;
+			this.canvas.width = cfg.colCount * ui.c_preview.board.dist
+			
+			var z = 170 / h;
+			document.getElementById("previewCanvas").style.transformOrigin = "left top" ;
+			
+			//document.getElementById("previewCanvas").style.transform = "scale(" + z + " )" ;
+			
+			
 			if (this.canvas.getContext){
 			  this.ctx = this.canvas.getContext('2d');
 			}
 			
 			v.ctx = this.ctx;
 			
-			v.ctx.scale(0.2, 0.2 );
+			//v.ctx.scale(0.2, 0.2 );
 			            ui.c_preview.board.render();
 
+						
 		}
     }
 
@@ -1137,7 +1158,7 @@
             "stroke": "rgba(255, 255, 255, 0.7 )",
             "stroke-width": 1
         },
-        dist: 15,
+        dist: 0.4,
 
         render: function() {
 
@@ -1252,6 +1273,5 @@
 
     //: test the rendering and the server
     server.dummyTest();
-	ui.cPreview.init();
 		
 </script>
