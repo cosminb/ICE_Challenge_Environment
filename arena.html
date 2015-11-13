@@ -69,7 +69,7 @@
             //compute the zoom level for preview
             var z = 170 / (cfg.rowCount * 4);
             cfg.previewTransform = ["s", z, z, 0, 0, "t", 20 / z, 0]
-			
+
         },
         render: function() {
             ui.preview.board.render();
@@ -79,8 +79,8 @@
 
 
 
-	
-	
+
+
     ui.preview = {
         render: function() {
             ui.preview.grid.render();
@@ -95,8 +95,8 @@
 
         borderStyle: {
             "stroke": "white",
-            "stroke-width": 1, 
-			
+            "stroke-width": 1,
+
         },
         dist: 4,
 
@@ -111,7 +111,7 @@
 
         },
         renderBorder: function(set, style, dist) {
-		
+
 			//draw border
             var rect = v.paper.rect(0, 0, cfg.colCount * dist, cfg.rowCount * dist);
             rect.attr(style);
@@ -120,7 +120,7 @@
 
 
             var gw = cfg.gateEnd - cfg.gateStart;
-			
+
 			//draw left gate
             var rect = v.paper.rect(0, cfg.gateStart * dist, dist / 2, gw * dist);
             rect.attr({
@@ -631,7 +631,7 @@
             var offsetY = arena.region[1] * arena.dist - arena.offset[1];
 
 ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
-	
+
                 path[value.color].push("M", value.point[0] * arena.dist - offsetX, value.point[1] * arena.dist - offsetY, "L", value.point[2] * arena.dist - offsetX, value.point[3] * arena.dist - offsetY);
 
 });
@@ -681,7 +681,7 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
 
             var path = ["M", coords[2] * arena.dist - offsetX, coords[3] * arena.dist - offsetY, "M", coords[0] * arena.dist - offsetX, coords[1] * arena.dist - offsetY];
 
-            var line = v.paper.path(path); 
+            var line = v.paper.path(path);
             line.attr({
                 'stroke': cfg.colors[color],
                 'stroke-width': 13,
@@ -693,10 +693,10 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
             var linePath = path.splice( 3, 1, "L" );
 
             line.animate({
-                path: path, 
+                path: path,
 				"stroke-width": 3
             }, ui.arena.duration);
-			
+
 
             this.set.push(line);
 
@@ -714,7 +714,7 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
         colCount: 31,
         rowCount: 15,
         dist: 30,
-		duration : 100, 
+		duration : 100,
 
         init: function() {
 
@@ -763,13 +763,10 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
             var offsetX = this.region[0] * this.dist - this.offset[0];
             var offsetY = this.region[1] * this.dist - this.offset[1];
 
-            var path = ["M", coords[0] * this.dist - offsetX, coords[1] * this.dist - offsetY, "L", coords[2] * this.dist - offsetX, coords[3] * this.dist - offsetY];
+            //var path = ["M", coords[0] * this.dist - offsetX, coords[1] * this.dist - offsetY, "L", coords[2] * this.dist - offsetX, coords[3] * this.dist - offsetY];
 
-            this.lines.push({
-                point: coords,
-                color: color,
-                path: path
-            });
+			ui.arena.linesRepo.addLine( coords, color );
+
         },
         addLine: function(coords, color) {
             //coords = [ "m", 0,0, "l", 0,0 ];
@@ -782,19 +779,15 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
                 if (updated) this.repaintTable();
             }
 
-			
-			ui.arena.linesRepo.addLine( coords, color );
-			
-            this.lines.push({
-                point: coords,
-                color: color,
-            });
 
+			ui.arena.linesRepo.addLine( coords, color );
+
+          
             ui.x.board.moves.render(coords, color);
         },
 
         updateRegion: function(line) {
-		
+
 			//the view region should be adjusted so the current line that is draw is visible
             var newRegion = [].concat(this.region);
             var h = this.rowCount;
@@ -840,26 +833,26 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
     }
 
 	ui.arena.linesRepo = {
-	
+
 		Line : function ( coords, color ) {
 			this.point = coords;
 			this.color = color;
-			
+
 			var c2 = [].concat( coords );
-			for ( var i in c2 ) 
+			for ( var i in c2 )
 				c2[ i ] = c2[i] * ui.arena.dist;
-			
+
 			this.coords = c2;
 		},
 		addLine : function (coords, color) {
 			if ( !this.lines[coords[0]] ) this.lines[ coords[0] ] = [];
 			if ( !this.lines[coords[0]][coords[1]] ) this.lines[coords[0]][coords[1]] = []
-			
+
 			var line = new ui.arena.linesRepo.Line( coords, color );
-			
+
 			this.lines[coords[0]][coords[1]].push( line );
 		},
-		
+
 		eachLineInRegion : function ( region, callback ) {
 			var startX = region[0] - 1;
 			if (startX < 0) startX = 0;
@@ -869,13 +862,13 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
 			if (startY < 0) startY = 0;
 			var endY = region[3] + 1;
 
-			
+
 			for ( var i = startX; i<=endX;i++ ) {
 				if ( !this.lines[i] ) continue;
 				var lines = this.lines[i];
 				for ( var j = startY ; j<= endY; j++ ) {
 					if ( !lines[j] ) continue;
-					
+
 					for ( var k = lines[j].length - 1; k>=0; k-- ) {
 						if (geo.isOutside(lines[j][k].point, region)) continue;
 						callback( lines[ j ][k] );
@@ -883,7 +876,7 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
 				}
 			}
 		},
-		
+
 		lines : [],
 	}
 	var geo = {
@@ -930,7 +923,7 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
             return res;
         },
 	}
-	
+
     //: Dummy server to simulate receiving lines
     var server = {
         getRandomPoint: function(point) {
@@ -1014,8 +1007,8 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
             for (var i = 0; i < 200; i++) {
                 api.addTrap(Math.floor(Math.random() * 200), Math.floor(Math.random() * 200));
             }
-			
-			if ( !skipStart ) 
+
+			if ( !skipStart )
 			            server.start();
         }
     }
@@ -1039,7 +1032,7 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
 			for ( var i in ui.arena.region ) {
 				ui.arena.region[ i ] = Math.floor( ui.arena.region[ i ] );
 			}
-			
+
             this.ballPosition = [startX, startY];
             ui.main.start();
 
@@ -1050,9 +1043,9 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
 
         },
         addNextMove: function(color, pointX, pointY) {
-			
+
 			logs.print( color + " " + pointX + " " + pointY );
-			
+
             this.addMove(this.ballPosition, [pointX, pointY], parseInt(color)-1);
 
             this.ballPosition = [pointX, pointY];
@@ -1075,18 +1068,18 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
             //state.start = [1, 2];
         },
 
-		linesCount : 0, 
+		linesCount : 0,
         addMove: function(start, point, color) {
-		
+
 			logs.print( "Player :" +  (this.linesCount++) + " | " + (color+1) + " going from <u>" + point + "</u> to " + start );
 
-			
+
             state.lines.push([start[0], start[1], point[0], point[1], color]);
 
             //ui.preview.moves.addLine([start[0], start[1], point[0], point[1]], color);
 
             ui.arena.addLine([start[0], start[1], point[0], point[1]], color);
-			
+
 			ui.c_preview.moves.addLine( [start[0], start[1], point[0], point[1]], color );
 
         },
@@ -1098,8 +1091,8 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
         },
     }
 
-	
-	
+
+
 	var logs = {
 		traces : [],
 		i : 0,
@@ -1112,59 +1105,59 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
 
 
 	var draw = {
-		line : function ( ctx, x1, y1, x2, y2, style ) { 
+		line : function ( ctx, x1, y1, x2, y2, style ) {
 			ctx.lineWidth = style.width || 1;
 
 			ctx.strokeStyle = style.stroke || "green";
-	  
+
 			ctx.beginPath();
 			ctx.moveTo( x1, y1 );
 			ctx.lineTo( x2, y2 );
-			
+
 			ctx.stroke();
 		},
-		
+
 		rect : function ( ctx, x1, y1, x2, y2, style ) {
 			ctx.lineWidth = style["stroke-width"] || 1;
 
 			ctx.strokeStyle = style.stroke || "#FFFFFF";
-	  
+
 			ctx.strokeRect( x1, y1, x2, y2 );
 		}
 	}
-	
+
 	ui.c_preview = {
         render: function() {
 			this.init();
             ui.c_preview.grid.render();
         },
-		
+
 		init : function ( ) {
 			this.canvas = document.getElementById('previewCanvas');
 
 			this.canvas.style.width = cfg.colCount * ui.c_preview.board.dist;
-			
+
 			var h = cfg.rowCount * ui.c_preview.board.dist
 			this.canvas.style.height = h ;
 			this.canvas.height = h;
 			this.canvas.width = cfg.colCount * ui.c_preview.board.dist
-			
+
 			var z = 170 / h;
 			document.getElementById("previewCanvas").style.transformOrigin = "left top" ;
-			
+
 			//document.getElementById("previewCanvas").style.transform = "scale(" + z + " )" ;
-			
-			
+
+
 			if (this.canvas.getContext){
 			  this.ctx = this.canvas.getContext('2d');
 			}
-			
+
 			v.ctx = this.ctx;
-			
+
 			//v.ctx.scale(0.2, 0.2 );
 			            ui.c_preview.board.render();
 
-						
+
 		}
     }
 
@@ -1196,16 +1189,16 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
                 fill: "white",
             });
             */
-			
-			
+
+
             var rect = draw.rect(v.ctx, cfg.colCount * dist, cfg.gateStart * dist, dist / 2, gw * dist, style );
-            
+
 
             var x = cfg.colCount * dist / 2;
             var maxY = cfg.rowCount * dist;
             var path = ["M", x, 0, "L", x, maxY]
-            var item = draw.line( v.ctx, x, 0, x, maxY, style ) 
-            
+            var item = draw.line( v.ctx, x, 0, x, maxY, style )
+
         },
 
         renderGrid: function(style, dist) {
@@ -1238,11 +1231,14 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
         },
     }
 
+    var cnt  = 0;
+
     ui.c_preview.moves = {
+
         addLine: function(coords, color) {
 
             var l1 = this.drawLine(coords, ui.c_preview.board.dist, {
-                "stroke-width": 1, 
+                "stroke-width": 1,
 				"stroke" : cfg.colors[ color ]
             });
 
@@ -1250,7 +1246,7 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
 
 
         drawLine: function( coords, dist, attr) {
-
+			cnt++;
             var points = [];
             for (var i = 0; i < 4; i++)
                 points[i] = coords[i] * dist;
@@ -1293,5 +1289,5 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
 
     //: test the rendering and the server
 //server.dummyTest();
-		
+
 </script>
