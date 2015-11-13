@@ -1,6 +1,7 @@
 <style>
     body {
         background: #345;
+		overflow : hidden;
     }
 </style>
 
@@ -17,8 +18,8 @@
 </svg>
 <div id="canvas_container"></div>
 
-<canvas id="previewCanvas" width=2000 height=2000 style='width:2000px; height:2000px; position : absolute; left : 1200px; top : 300px;'> </canvas>
-<div id='debug' style='font : Helvetica;  position:absolute; left : 450px; top : 10px; height : 170px; width : 400px;overflow : hidden;z-index:100; font-size:13px; color : rgba(200,200,200,0.3);'> </div>
+<canvas id="previewCanvas" width=20 height=20 style='width:20px; height:20px; position : absolute; left : 1200px; top : 300px;'> </canvas>
+<div id='debug' style='font : Helvetica;  position:absolute; left : 450px; top : 10px; height : 170px; width : 400px;overflow : auto;z-index:100; font-size:13px; color : rgba(200,200,200,0.3);'> </div>
 <script src="libs/raphael-min.js"></script>
 <script src="libs/RaphaelJS.group/js/raphael.group.js"></script>
 <script>
@@ -60,7 +61,7 @@
 
         setup: function() {
             //container for drawings
-            v.paper = Raphael(10, 10, 2052, 1202);
+            v.paper = Raphael(10, 10, 1024, 1000);
 
             //lines contain the gri
             v.lines = v.paper.set();
@@ -79,48 +80,6 @@
 
 
 	
-	ui.cPreview = {
-		init : function ( )  {
-			ui.c_preview.init();
-			
-			/*
-			
-					init : function ( )  {
-			this.canvas = document.getElementById('previewCanvas');
-			if (this.canvas.getContext){
-			  this.ctx = this.canvas.getContext('2d');
-			}
-				*/
-		},
-		
-		addLine : function  (coords, color ) {
-		
-			ui.c_preview.moves.addLine( coords, color ) ;
-			
-			/*
-		    var points = [];
-            for (var i = 0; i < 4; i++)
-                points[i] = coords[i] * 10;
-
-			this.ctx.beginPath();
-			this.ctx.moveTo( points[2], points[3] );
-			this.ctx.lineTo( points[0], points[1] );
-			
-			this.ctx.lineWidth = 1;
-
-      // set line color
-      this.ctx.strokeStyle = '#ff0000';
-      //context.stroke();
-	  
-	  
-			this.ctx.stroke();
-						console.log( points, this.ctx);
-
-            //    'stroke': cfg.colors[color],
-            */
-		}
-	}
-
 	
     ui.preview = {
         render: function() {
@@ -136,7 +95,8 @@
 
         borderStyle: {
             "stroke": "white",
-            "stroke-width": 1
+            "stroke-width": 1, 
+			
         },
         dist: 4,
 
@@ -144,14 +104,15 @@
 
             v.grid = v.paper.set();
 
-
-            this.renderGrid(v.grid, this.gridStyle, this.dist);
+            //this.renderGrid(v.grid, this.gridStyle, this.dist);
             this.renderBorder(v.grid, this.borderStyle, this.dist);
 
             v.grid.transform(cfg.previewTransform);
 
         },
         renderBorder: function(set, style, dist) {
+		
+			//draw border
             var rect = v.paper.rect(0, 0, cfg.colCount * dist, cfg.rowCount * dist);
             rect.attr(style);
             set.push(rect);
@@ -159,7 +120,8 @@
 
 
             var gw = cfg.gateEnd - cfg.gateStart;
-
+			
+			//draw left gate
             var rect = v.paper.rect(0, cfg.gateStart * dist, dist / 2, gw * dist);
             rect.attr({
                 fill: "white",
@@ -167,6 +129,7 @@
             rect.attr(style);
             set.push(rect);
 
+			//draw right gate
             var rect = v.paper.rect(cfg.colCount * dist, cfg.gateStart * dist, dist / 2, gw * dist);
             rect.attr({
                 fill: "white",
@@ -175,6 +138,7 @@
             set.push(rect);
 
 
+			//draw middle line
             var x = cfg.colCount * dist / 2;
             var maxY = cfg.rowCount * dist;
             var path = ["M", x, 0, "L", x, maxY]
@@ -227,7 +191,7 @@
     ui.preview.moves = {
         addLine: function(coords, color) {
 
-            var l1 = this.drawLine(v.grid, coords, color, 4, {
+            var l1 = this.drawLine(v.grid, coords, color, ui.preview.board.dist, {
                 "stroke-width": 1
             });
             l1.transform(cfg.previewTransform)
@@ -284,6 +248,7 @@
 
             var trap = paper.ellipse(points[0], points[1], 1, 1);
 
+			trap.attr( attr );
             return trap;
         },
     }
@@ -576,7 +541,7 @@
                 "stroke-width": 0
             });
 
-            obj.el.toFront();
+            //obj.el.toFront();
 
             obj.el.node.style.fill = "url(#myRadialGradient4)"
 
@@ -633,6 +598,7 @@
     }
 
     ui.x.board.oldLines = {
+		//when changing the viewport, redraw lines that were previously there
         render: function() {
 
             this.paintedLines = []
@@ -721,13 +687,10 @@
             var linePath = path.splice( 3, 1, "L" );
 
             line.animate({
-                path: path
-            }, 100);
+                path: path, 
+				"stroke-width": 3
+            }, ui.arena.duration);
 			
-            line.animate({
-                "stroke-width": 3
-            }, 100)
-
 
             this.set.push(line);
 
@@ -742,9 +705,10 @@
         region: [0, 0, 5, 5],
         offset: [20, 210],
 
-        colCount: 32,
-        rowCount: 20,
+        colCount: 31,
+        rowCount: 15,
         dist: 30,
+		duration : 100, 
 
         init: function() {
 
@@ -821,6 +785,8 @@
         },
 
         updateRegion: function(line) {
+		
+			//the view region should be adjusted so the current line that is draw is visible
             var newRegion = [].concat(this.region);
             var h = this.rowCount;
             var w = this.colCount;
@@ -1009,14 +975,18 @@
             cfg.startPoint = [startX, startY];
 
 
-            ui.arena.region = [startX - ui.arena.rowCount / 2, startY - ui.arena.colCount / 2, startX + ui.arena.rowCount / 2, startY + ui.arena.colCount / 2]
+            ui.arena.region = [startX - ui.arena.rowCount / 2 , startY - ui.arena.colCount / 2, startX + ui.arena.rowCount / 2, startY + ui.arena.colCount / 2]
 
+			for ( var i in ui.arena.region ) {
+				ui.arena.region[ i ] = Math.floor( ui.arena.region[ i ] );
+			}
+			
             this.ballPosition = [startX, startY];
             ui.main.start();
 
            var updated = ui.arena.updateRegion([startX, startY, startX, startY]);
             ui.arena.repaintTable();
-			ui.c_preview.init();
+			//ui.c_preview.init();
 
 
         },
@@ -1056,7 +1026,7 @@
 			
 			*/
 			
-			//*/
+			/*/
 			if ( Math.random() < 0.5 ) 
 			logs.print( "Look <b>HERE</b>" );
 			//*/
@@ -1067,7 +1037,7 @@
 
             ui.arena.addLine([start[0], start[1], point[0], point[1]], color);
 			
-			ui.c_preview.moves.addLine( [start[0], start[1], point[0], point[1]], color );
+			//ui.c_preview.moves.addLine( [start[0], start[1], point[0], point[1]], color );
 
         },
 
@@ -1085,7 +1055,7 @@
 		i : 0,
 		print : function ( str ) {
 			this.traces.unshift( (this.i++ ) + ". " + str ) ;
-			if ( this.traces.length > 20 ) this.traces = this.traces.slice( 0 , 15 );
+			//if ( this.traces.length > 20 ) this.traces = this.traces.slice( 0 , 15 );
 			document.getElementById("debug").innerHTML = this.traces.join("</br>");//str + "<br />" + document.getElementById("debug").innerHTML;
 		}
 	}
@@ -1272,6 +1242,6 @@
 
 
     //: test the rendering and the server
-    server.dummyTest();
+//server.dummyTest();
 		
 </script>
