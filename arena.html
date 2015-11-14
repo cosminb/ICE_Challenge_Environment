@@ -315,11 +315,6 @@
                 });
                 this.texts[0].push(text);
 
-                text = paper.text(x2, y2 + 10, i);
-                text.attr({
-                    fill: "#dddddd"
-                });
-                this.texts[1].push(text);
             }
 
 
@@ -345,17 +340,12 @@
                 });
                 this.texts[2].push(text);
 
-                text = paper.text(x2 + 10, y2, i);
-                text.attr({
-                    fill: "#dddddd"
-                });
-                this.texts[3].push(text);
 
             }
         },
 
         updateTexts: function(startX, startY) {
-            for (var i = 0; i < 2; i++) {
+            for (var i = 0; i < 1; i++) {
                 for (var j = 0; j < this.texts[i].length; j++) {
                     this.texts[i][j].attr({
                         text: startX + j
@@ -363,7 +353,7 @@
                 }
             }
 
-            for (var i = 2; i < 4; i++) {
+            for (var i = 2; i < 3; i++) {
                 for (var j = 0; j < this.texts[i].length; j++) {
                     this.texts[i][j].attr({
                         text: startY + j
@@ -632,7 +622,7 @@
 
 ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
 
-                path[value.color].push("M", value.point[0] * arena.dist - offsetX, value.point[1] * arena.dist - offsetY, "L", value.point[2] * arena.dist - offsetX, value.point[3] * arena.dist - offsetY);
+                path[value.color].push("M", value.coords[0], value.coords[1], "L", value.coords[2] , value.coords[3] );
 
 });
 
@@ -655,6 +645,9 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
                     path: path[1]
                 });
 
+            this.paintedLines[0].transform(["T", -offsetX, -offsetY ] );
+
+            this.paintedLines[1].transform(["T", -offsetX, -offsetY ] );
 
         }
     }
@@ -743,12 +736,17 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
                 this.init();
             }
 
-            ui.x.board.moves.refresh();
             ui.x.board.oldLines.refresh();
+            ui.x.board.moves.refresh();
+
+			window.setTimeout( function ( ) {
             ui.x.board.traps.refresh();
             ui.x.board.refresh();
-            ui.x.board.grid.updateTexts(this.region[0], this.region[1]);
+            },5);
+            window.setTimeout( function ( ) {
+            ui.x.board.grid.updateTexts(ui.arena.region[0], ui.arena.region[1]);
             ui.x.previewArea.refresh();
+            }, 10 );
 
         },
 
@@ -782,7 +780,7 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
 
 			ui.arena.linesRepo.addLine( coords, color );
 
-          
+
             ui.x.board.moves.render(coords, color);
         },
 
@@ -811,7 +809,6 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
             if (newRegion[0] < 0) newRegion[0] = 0
             if (newRegion[1] < 0) newRegion[1] = 0;
 
-            if (newRegion[0] == region[0] && newRegion[1] == region[1]) updated = false;
             newRegion[2] = newRegion[0] + w;
             newRegion[3] = newRegion[1] + h;
 
@@ -825,6 +822,8 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
                 newRegion[3] = cfg.rowCount;
                 newRegion[1] = newRegion[3] - h;
             }
+
+            if (newRegion[0] == region[0] && newRegion[1] == region[1]) return updated = false;
 
             this.region = newRegion;
 
@@ -926,6 +925,11 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
 
     //: Dummy server to simulate receiving lines
     var server = {
+		go : function ( dx, dy ) {
+			state.start = [state.start[0] + dx, state.start[1] + dy ];
+		},
+		gogo : function ( ) {
+		},
         getRandomPoint: function(point) {
             var x = 1 - Math.floor(3 * Math.random());
             var y = 1 - Math.floor(3 * Math.random());
@@ -993,6 +997,26 @@ ui.arena.linesRepo.eachLineInRegion( arena.region , function ( value ) {
             count = count || 2000;
             for (var i = 0; i < count; i++)
                 server.simulate2();
+        },
+
+        fill3 : function ( ) {
+			for ( var i = 0; i<cfg.colCount - 1; i++ ) {
+				for ( var j = 0; j < cfg.rowCount - 1; j++ ) {
+
+					for ( var k = 0; k<2; k++ ) {
+						for ( var l = 0; l<2; l++ ) {
+							if ( k + l === 0 ) continue;
+
+							api.addMove( [i,j], [i+k, j+l], (i + j)% 2 )
+
+						}
+					}
+
+					api.addMove( [i+1,j], [i, j+1], (i + j)% 2 )
+
+
+				}
+			}
         },
         dummyTest: function( skipStart ) {
             api.startGame(570, 1040, 10, 10);
