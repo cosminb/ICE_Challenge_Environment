@@ -120,7 +120,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
         },
         render: function() {
-            ui.preview.board.render();
+            //ui.preview.board.render();
         }
     }
 
@@ -681,7 +681,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
             this.paintedLines[1].attr({
                 'stroke': cfg.colors[1],
-                'stroke-width': 3,
+                'stroke-width': 2,
                 'clip-rect' : [ ui.arena.offset[0], ui.arena.offset[1],  (ui.arena.colCount  )* ui.arena.dist, (ui.arena.rowCount  )* ui.arena.dist]
             })
 
@@ -1221,6 +1221,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
         start: function() {
 
 			server.simulate();
+			if ( !this.stop_start )
 			window.setTimeout( function (  ) {
 				server.start();
 			}, ui.arena.duration)
@@ -1296,9 +1297,9 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 			var y = Math.floor(Math.random() * 20);
 			while ( y == x ) y = Math.floor(Math.random() * 20)
 
-            api.addColors(x, y, 20);
+            //api.addColors(x, y, 20);
 
-        api.startGame(530, 1200, 10, 10);
+        api.startGame(230, 500, 10, 10);
 
 
             var updated = ui.arena.updateRegion([10,10,10,10]);
@@ -1315,12 +1316,16 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
             }
             //*/
 
-            for ( var i = 0; i< 200; i++ ) {
+
+
+			if ( !skipStart ) {
+			                        for ( var i = 0; i< 200; i++ ) {
 				api.addTrap(Math.floor(Math.random() * cfg.colCount), Math.floor(Math.random() * cfg.rowCount));
 			}
 
-			if ( !skipStart )
 			            server.start();
+
+			            }
         },
 
         dt4 : function ( ) {
@@ -1447,7 +1452,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
         },
 
         addTrap: function(pointX, pointY) {
-            ui.preview.traps.addTrap([pointX, pointY], "#C0FFEE");
+            //ui.preview.traps.addTrap([pointX, pointY], "#C0FFEE");
             ui.x.board.traps.addTrap([pointX, pointY], "#C0FFEE");
 
         },
