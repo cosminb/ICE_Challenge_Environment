@@ -1,4 +1,4 @@
-<style>
+﻿<style>
     body {
         background: #1F1F1F;
 		overflow : hidden;
@@ -120,192 +120,8 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
         },
         render: function() {
-            //ui.preview.board.render();
         }
     }
-
-
-
-
-
-
-    ui.preview = {
-        render: function() {
-            ui.preview.grid.render();
-        },
-    }
-
-    ui.preview.board = {
-        gridStyle: {
-            'stroke': "rgb(170,170,170)",
-            'stroke-width': 0.2
-        },
-
-        borderStyle: {
-            "stroke": "white",
-            "stroke-width": 1,
-
-        },
-        dist: 4,
-
-        render: function() {
-
-            v.grid = v.paper.set();
-
-            //this.renderGrid(v.grid, this.gridStyle, this.dist);
-           // this.renderBorder(v.grid, this.borderStyle, this.dist);
-
-            //v.grid.transform(cfg.previewTransform);
-
-        },
-        renderBorder: function(set, style, dist) {
-
-			var w = ui.c_preview.w;
-			var h = ui.c_preview.h;
-
-			//draw border
-            var rect = v.paper.rect(0, 0, w, h);
-            rect.attr(style);
-            set.push(rect);
-
-
-
-            var gw = cfg.gateEnd - cfg.gateStart;
-
-			//draw left gate
-            var rect = v.paper.rect(0, cfg.gateStart * dist, dist / 2, gw * dist);
-            rect.attr({
-                fill: "white",
-            });
-            rect.attr(style);
-            set.push(rect);
-
-			//draw right gate
-            var rect = v.paper.rect(cfg.colCount * dist, cfg.gateStart * dist, dist / 2, gw * dist);
-            rect.attr({
-                fill: "white",
-            });
-            rect.attr(style);
-            set.push(rect);
-
-
-			//draw middle line
-            var x = cfg.colCount * dist / 2;
-            var maxY = cfg.rowCount * dist;
-            var path = ["M", x, 0, "L", x, maxY]
-            var item = v.paper.path(path);
-            item.attr({
-                fill: "white",
-            });
-            item.attr(style);
-            set.push(item);
-
-        },
-
-        renderGrid: function(set, style, dist) {
-            var paper = v.paper;
-
-
-            for (var i = 0; i < cfg.colCount; i++) {
-                var x1 = i * dist;
-                var y1 = 0;
-
-                var x2 = x1;
-                var y2 = cfg.rowCount * dist - dist;
-                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
-                var line = paper.path(pathStr);
-
-                set.push(line);
-
-                line.attr(style);
-            }
-
-
-
-            for (var i = 0; i < cfg.rowCount; i++) {
-                var y1 = i * dist;
-                var x1 = 0;
-
-                var y2 = y1;
-                var x2 = cfg.colCount * dist - dist;
-
-                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
-                var line = paper.path(pathStr);
-
-                set.push(line);
-
-                line.attr(style);
-            }
-        },
-    }
-
-    ui.preview.moves = {
-        addLine: function(coords, color) {
-
-            var l1 = this.drawLine(v.grid, coords, color, ui.preview.board.dist, {
-                "stroke-width": 1
-            });
-            l1.transform(cfg.previewTransform)
-
-            v.grid.push(l1);
-
-        },
-
-
-        drawLine: function(set, coords, color, dist, attr) {
-
-            var paper = v.paper;
-
-            var points = [];
-            for (var i = 0; i < 4; i++)
-                points[i] = coords[i] * dist;
-
-            var pathStr = ["M", points[2], points[3], "L", points[0], points[1]];
-
-            var line = paper.path(pathStr);
-
-            line.attr('stroke', cfg.colors[color] )
-
-            line.attr(this.lineStyle)
-
-            return line;
-        },
-         lineStyle : {
-                'stroke-width': 1,
-                'stroke-linecap': "round"
-         }
-    }
-
-
-
-    ui.preview.traps = {
-        addTrap: function(coords, color) {
-
-            var l1 = this.drawTrap(v.grid, coords, color, 1, {
-                "stroke-width": 1,
-                stroke: "red"
-            });
-            v.grid.push(l1);
-            l1.transform(cfg.previewTransform)
-
-        },
-
-        drawTrap: function(set, coords, color, dist, attr) {
-
-            var paper = v.paper;
-
-            var points = [];
-            for (var i = 0; i < 4; i++)
-                points[i] = coords[i] * dist;
-
-
-            var trap = paper.ellipse(points[0], points[1], 1, 1);
-
-			trap.attr( attr );
-            return trap;
-        },
-    }
-
 
 
 
@@ -345,10 +161,16 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
             this.texts = [
                 [],
                 [],
-                [],
-                []
+				[],
+				[]
             ];
 
+			
+			var paths = [
+				[],
+				[]
+			]
+			
             for (var i = 0; i <= colCount; i++) {
                 var x1 = i * dist + offsetX;
                 var y1 = offsetY;
@@ -356,17 +178,16 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
                 var x2 = x1;
                 var y2 = rowCount * dist + offsetY;
                 var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
-                var line = paper.path(pathStr);
+                
+				paths[0].push( pathStr );
+				
+				
+                
 
-                set.push(line);
+               // text = paper.text(x1, y1 - 10, i);
+              //  text.attr("fill", "#dddddd" )
 
-                line.attr(style);
-
-                text = paper.text(x1, y1 - 10, i);
-                text.attr("fill", "#dddddd" )
-
-                this.texts[0].push(text);
-
+              //  this.texts[0].push(text);
             }
 
 
@@ -379,23 +200,39 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
                 var x2 = colCount * dist + offsetX;
 
                 var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
-                var line = paper.path(pathStr);
+                
+				paths[1].push( pathStr );
 
-                set.push(line);
+				
+				//var line = paper.path(pathStr);
 
-                line.attr(style);
+
+                //line.attr(style);
 
 
-                text = paper.text(x1 - 10, y1, i);
-                text.attr("fill", "#dddddd");
+                //text = paper.text(x1 - 10, y1, i);
+               // text.attr("fill", "#dddddd");
 
-                this.texts[2].push(text);
+               // this.texts[2].push(text);
 
 
             }
+			
+			
+			var line = paper.path(paths[0].join(" "));
+
+			set.push(line);
+			line.attr(style);
+			
+			var line = paper.path(paths[1].join(" "));
+			line.attr(style);
+
+			set.push(line);
+
         },
 
         updateTexts: function(startX, startY) {
+		/*
             for (var i = 0; i < 1; i++) {
                 for (var j = 0; j < this.texts[i].length; j++) {
                     this.texts[i][j].attr("text", startX + j)
@@ -407,6 +244,8 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
                     this.texts[i][j].attr("text", startY + j)
                 }
             }
+			
+			*/
         }
 
     }
@@ -594,7 +433,10 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 
             var id = "el_" + this.objects.length;
-//*
+
+			obj.el.node.innerHTML = '<animate id="' + id + 'gros" begin="0s;' + id + 'petit.end" attributeName="rx" from="0" to="25" dur=".8s"></animate><animate id="' + id + 'petit" begin="' + id + 'gros.end" attributeName="rx" from="25" to="0" dur=".5s"></animate><animate  begin="0s;' + id + 'petit.end" attributeName="ry" from="0" to="25" dur=".8s"></animate><animate  begin="` + id + `gros.end" attributeName="ry" from="25" to="0" dur=".5s"></animate>'; //
+
+			/*
             obj.el.node.innerHTML = `
 
 				<animate id="` + id + `gros" begin="0s;` + id + `petit.end" attributeName="rx" from="0" to="25" dur=".8s"></animate>
@@ -706,19 +548,18 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
             var delta = 5;
             var region = [ arena.region[0] - delta, arena.region[1] -delta , arena.region[2] + delta, arena.region[3] + delta];
 
-			debug.clear( "pathsArena" );
+			//debug.clear( "pathsArena" );
 
-			ui.arena.linesRepo.eachLineInRegion( region, function ( value ) {
-
-
-							debug.inc( "pathsArena" );
+			ui.arena.linesRepo.eachLineInRegion( region, function ( color, value ) {
 
 
-							path[value.color].push( value.subpath )//"M", value.coords[0], value.coords[1], "L", value.coords[2] , value.coords[3] );
+							//debug.inc( "pathsArena" );
+
+							path[color].push( value )//"M", value.coords[0], value.coords[1], "L", value.coords[2] , value.coords[3] );
 
 			});
 
-			debug.log( "pathsArena" );
+			//debug.log( "pathsArena" );
 
 /*
             for (var i in arena.lines) {
@@ -767,6 +608,76 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
             this.paintedLines[1].transform(["T", -offsetX, -offsetY ] );
 
 			//*/
+        },
+		
+		refreshNoAnimation: function() {
+            var arena = ui.arena;
+            var path = [
+                [],
+                []
+            ]
+
+            var offsetX = arena.region[0] * arena.dist - arena.offset[0];
+            var offsetY = arena.region[1] * arena.dist - arena.offset[1];
+
+            var delta = 5;
+            var region = [ arena.region[0] - delta, arena.region[1] -delta , arena.region[2] + delta, arena.region[3] + delta];
+
+
+			ui.arena.linesRepo.eachLineInRegion( region, function (color,  value ) {
+
+
+							path[color].push( value )//"M", value.coords[0], value.coords[1], "L", value.coords[2] , value.coords[3] );
+
+			});
+
+/*
+            for (var i in arena.lines) {
+                value = arena.lines[i];
+                if (geo.isOutside(value.point, arena.region)) continue;
+
+                path[value.color].push("M", value.coords[0] - offsetX, value.coords[1]  - offsetY, "L", value.coords[2]  - offsetX, value.coords[3]  - offsetY);
+            };
+*/
+
+            if (path[0].length)
+                this.paintedLines[0].attr({
+                    path: path[0].join()
+                });
+
+            if (path[1].length)
+                this.paintedLines[1].attr({
+                    path: path[1].join()
+                });
+
+            /*
+            var dx = arena.region[0] - arena.oldRegion[0];
+            var dy = arena.region[1] - arena.oldRegion[1];
+
+
+            this.paintedLines[0].transform(["T", -offsetX + arena.dist * dx, -offsetY + arena.dist * dy ] );
+
+            this.paintedLines[1].transform(["T", -offsetX+ arena.dist * dx, -offsetY + arena.dist * dy ] );
+
+            var that = this;
+
+            window.setTimeout( function ( ) {
+            for ( var i = 0; i<2; i++ ) {
+				that.paintedLines[i].animate( {
+					transform : ["T", -offsetX, -offsetY]
+				}, ui.arena.duration - 50 );
+			}
+			}, 10);
+
+			//*/
+
+			//*
+
+			this.paintedLines[0].transform(["T", -offsetX , -offsetY ] );
+
+            this.paintedLines[1].transform(["T", -offsetX, -offsetY ] );
+
+			//*/
         }
     }
 
@@ -795,6 +706,11 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
         getLine : function ( ) {
 			var line;
+			if ( this.used.length > 5 ) {
+				ui.arena.repaintLines();
+			}
+			
+			
 			if (!this.pool.length ) {
 
 				line = v.paper.path(["M", 0, 0, "L", 0, 0]);
@@ -881,6 +797,12 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
             this.isReady = true;
         },
 
+		repaintLines : function ( ) {
+			ui.arena.oldRegion = ui.arena.region;
+
+            ui.x.board.oldLines.refreshNoAnimation();
+            ui.x.board.moves.refresh();
+		},
         repaintTable: function() {
 
 
@@ -945,15 +867,17 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 			}
 
 
-			ui.arena.linesRepo.addLine( line );
 
 
 			ui.x.board.moves.render(line.coords, line.color);
+			
+			ui.arena.linesRepo.addLine( line );
+
         },
 
         updateRegion: function(line, delta) {
 
-			var delta = delta || 4;
+			var delta = delta || 2;
 			//the view region should be adjusted so the current line that is draw is visible
             var newRegion = [].concat(this.region);
             var h = this.rowCount;
@@ -1008,7 +932,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 			this.oldRegion = [coords[0] -delta, coords[1] -delta, coords[0] + w - delta, coords[1] + h -delta];
 		},
 
-    },
+    }
 
 
 	ui.arena.linesRepo = {
@@ -1078,11 +1002,15 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 			if ( !this.lines[r] ) this.lines[ r ] = [];
 			if ( !this.lines[r][c] ) this.lines[r][c] = []
+			
+			if ( !this.lines[r][c][line.color] ) this.lines[r][c][line.color] = ""
 
 
 			//var line = new ui.arena.linesRepo.Line( coords, color );
 
-			this.lines[r][c].push( line );
+			this.lines[r][c][line.color] += line.subpath; 
+			
+			//delete line;
 		},
 
 		eachLineInRegion : function ( region, callback ) {
@@ -1100,10 +1028,13 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 				var lines = this.lines[i];
 				for ( var j = startY ; j<= endY; j++ ) {
 					if ( !lines[j] ) continue;
-
+					
+					//callback( lines[ j ] ) ;
+					
 					for ( var k = lines[j].length - 1; k>=0; k-- ) {
+						if ( !lines[j][k] ) continue;
 						//if (geo.isOutside(lines[j][k].point, region)) continue;
-						callback( lines[ j ][k] );
+						callback( k, lines[ j ][k] );
 					}
 				}
 			}
@@ -1299,7 +1230,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
             //api.addColors(x, y, 20);
 
-        api.startGame(230, 500, 10, 10);
+        api.startGame(530, 1000, 10, 10);
 
 
             var updated = ui.arena.updateRegion([10,10,10,10]);
@@ -1307,7 +1238,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
             state.start = api.ballPosition;
 
-           /*
+           //*
             for (var i = 0; i < cfg.colCount / 50; i++) {
 				for ( var j = 0; j < cfg.rowCount / 50; j++ )
                 //
@@ -1650,6 +1581,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 
     //: test the rendering and the server
-//server.dummyTest();
-
+server.dummyTest();
+//server.re_fill4()
+//server.fill4();
 </script>
