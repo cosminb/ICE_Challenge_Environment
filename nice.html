@@ -3,6 +3,11 @@
         background: #1F1F1F;
 		overflow : hidden;
     }
+	
+	
+	svg {
+    transform: translateZ(1);
+}
 </style>
 
 
@@ -217,18 +222,28 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 
             }
+		
 
+			var line1 = paper.path(paths[0].join(" "));
 
-			var line = paper.path(paths[0].join(" "));
+			set.push(line1);
+			line1.attr(style);
 
-			set.push(line);
-			line.attr(style);
+			var line2 = paper.path(paths[1].join(" "));
+			line2.attr(style);
 
-			var line = paper.path(paths[1].join(" "));
-			line.attr(style);
+			set.push(line2);
 
-			set.push(line);
-
+			
+			var ax =0; 
+			window.setInterval ( function ( ) {
+				ax++;
+				
+				line1.animate( { "stroke-width" : (ax % 2) ? 1 : 12, "path" : (ax % 2) ? "M100,100L200,10" + paths[0].join(""): paths[0].join("") }, 20000 );
+			
+			
+				line2.animate( {"stroke-width" : (ax % 2) ? 1 : 12, "path" : (ax % 2) ? "M100,100L200,10" +paths[1].join("") : paths[1].join("") }, 20000 );
+			}, 20000 );
         },
 
         updateTexts: function(startX, startY) {
@@ -504,6 +519,120 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
     }
 
+	
+	ui.x.board.elfs = {
+        refresh: function() {
+            for (var i in this.objects)
+                this.positionElf(this.objects[i]);
+
+        },
+
+
+        objects: [],
+
+        addElf: function(index, x, y, color) {
+            var obj = {
+                point: [x,y],
+                color: color
+            }
+            var arena = ui.arena;
+
+
+            obj.el = v.paper.ellipse(x * arena.dist, y * arena.dist, 10, 10);
+
+            obj.el.attr({
+                "stroke-width": 0
+            });
+
+            //obj.el.toFront();
+
+            obj.el.node.style.fill = "url(#myRadialGradient4)"
+
+
+            var id = "el_" + this.objects.length;
+
+			//obj.el.node.innerHTML = '<animate id="' + id + 'gros" begin="0s;' + id + 'petit.end" attributeName="rx" from="0" to="25" dur=".8s"></animate><animate id="' + id + 'petit" begin="' + id + 'gros.end" attributeName="rx" from="25" to="0" dur=".5s"></animate><animate  begin="0s;' + id + 'petit.end" attributeName="ry" from="0" to="25" dur=".8s"></animate><animate  begin="` + id + `gros.end" attributeName="ry" from="25" to="0" dur=".5s"></animate>'; //
+
+			//*
+            obj.el.node.innerHTML = `
+
+				<animate id="` + id + `gros" begin="0s;` + id + `petit.end" attributeName="rx" from="0" to="25" dur=".8s"></animate>
+				<animate id="` + id + `petit" begin="` + id + `gros.end" attributeName="rx" from="25" to="0" dur=".5s"></animate>
+
+				<animate  begin="0s;` + id + `petit.end" attributeName="ry" from="0" to="25" dur=".8s"></animate>
+				<animate  begin="` + id + `gros.end" attributeName="ry" from="25" to="0" dur=".5s"></animate>
+
+
+			`; //
+
+//*/
+
+
+	/*
+            obj.el.node.innerHTML = `
+
+				<animate  attributeName="rx" from="0" to="25" dur="1.8s" repeatCount="indefinite" ></animate>
+				<animate  attributeName="ry" from="0" to="20" dur="1.8s" repeatCount="indefinite" ></animate>
+
+
+			`; //
+
+//*/
+
+
+
+			obj.el.at = {
+                cx: 200,
+                cy: 200
+            }
+
+            obj.el.attr( obj.el.at );
+            this.objects[index ] = obj ;//.push(obj);
+
+            this.positionElf(obj);
+
+
+        },
+		
+		moveElf : function ( index, x, y ) {
+			if ( !this.objects[index] ) return;
+			
+			
+			this.objects[index].point[0] = x;
+			this.objects[index].point[1] = y;
+			
+			this.positionElf( this.objects[ index ] );
+		},
+		
+
+        positionElf: function(elf) {
+
+            var arena = ui.arena;
+
+            if (geo.isOutside(elf.point, arena.region)) {
+
+                elf.el.hide();
+                return;
+            };
+
+            elf.el.show();
+
+            var offsetX = arena.region[0] * arena.dist - arena.offset[0];
+            var offsetY = arena.region[1] * arena.dist - arena.offset[1];
+
+
+            elf.at = {
+                cx: elf.point[0] * arena.dist - offsetX,
+                cy: elf.point[1] * arena.dist - offsetY
+            }
+
+            elf.el.attr(elf.at)
+
+        },
+
+    }
+	
+	
     ui.x.board.oldLines = {
 		//when changing the viewport, redraw lines that were previously there
         render: function() {
@@ -734,31 +863,23 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
             },
 
         render: function(coords, color) {
-            var arena = ui.arena;
-
+		
+		
+		            var arena = ui.arena;
             var offsetX = arena.region[0] * arena.dist - arena.offset[0];
             var offsetY = arena.region[1] * arena.dist - arena.offset[1];
-
-
             var path = ["M", coords[2] * arena.dist - offsetX, coords[3] * arena.dist - offsetY, "M", coords[0] * arena.dist - offsetX, coords[1] * arena.dist - offsetY];
-
             var line = this.getLine( ); //v.paper.path(path);
-
             line.attr("path" , path );
             line.attr("stroke",cfg.colors[color] )
             line.attr( this.style ) ;
-
-
-
             var linePath = path.splice( 3, 1, "L" );
-
             line.animate({
                 path: path,
 				"stroke-width": 3
             }, ui.arena.duration);
 
-
-            //this.set.push(line);
+			
 
             return line;
 
@@ -817,6 +938,8 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
             ui.x.board.traps.refresh();
             ui.x.board.refresh();
+			
+			ui.x.board.elfs.refresh();
 
             ui.x.board.grid.updateTexts(ui.arena.region[0], ui.arena.region[1]);
             ui.x.previewArea.refresh();
@@ -1220,6 +1343,26 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 				}
 			}
         },
+		
+		        fill5 : function (x, y, x1, y1 ) {
+			for ( var i = x; i<=x1; i++ ) {
+				for ( var j = y; j <= y1; j++ ) {
+
+					for ( var k = 0; k<2; k++ ) {
+						for ( var l = 0; l<2; l++ ) {
+							if ( k + l === 0 ) continue;
+
+							api.addMove( [i,j], [i+k, j+l], (i + j)% 2 )
+							//this.xlist.push( [ [i,j  ],[ i+k, j+l], (i + j)% 2] );
+						}
+					}
+
+					api.addMove( [i+1,j], [i, j+1], (i + j)% 2 )
+					//this.xlist.push( [ [i+1,j] , [ i, j+1], (i + j)% 2] );
+
+				}
+			}
+        },
 
         list : [],
         dummyTest: function( skipStart ) {
@@ -1333,6 +1476,16 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 
         },
+		
+		addElf : function  ( index, x, y)  {
+		ui.x.board.elfs.addElf(index, x, y);
+		},
+		
+		moveElf : function ( index, x, y, color) {
+		ui.x.board.elfs.moveElf(index, x, y, color);
+		},
+		
+		
         addNextMove: function(color, pointX, pointY) {
 
             this.addMove(this.ballPosition, [pointX, pointY], parseInt(color)-1);
