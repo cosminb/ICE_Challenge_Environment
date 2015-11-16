@@ -548,18 +548,18 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
             var delta = 5;
             var region = [ arena.region[0] - delta, arena.region[1] -delta , arena.region[2] + delta, arena.region[3] + delta];
 
-			//debug.clear( "pathsArena" );
+			debug.clear( "pathsArena" );
 
 			ui.arena.linesRepo.eachLineInRegion( region, function ( color, value ) {
 
 
-							//debug.inc( "pathsArena" );
+							debug.inc( "pathsArena" );
 
 							path[color].push( value )//"M", value.coords[0], value.coords[1], "L", value.coords[2] , value.coords[3] );
 
 			});
 
-			//debug.log( "pathsArena" );
+			debug.log( "pathsArena" );
 
 /*
             for (var i in arena.lines) {
