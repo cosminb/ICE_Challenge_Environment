@@ -165,12 +165,12 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 				[]
             ];
 
-			
+
 			var paths = [
 				[],
 				[]
 			]
-			
+
             for (var i = 0; i <= colCount; i++) {
                 var x1 = i * dist + offsetX;
                 var y1 = offsetY;
@@ -178,16 +178,16 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
                 var x2 = x1;
                 var y2 = rowCount * dist + offsetY;
                 var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
-                
+
 				paths[0].push( pathStr );
-				
-				
-                
 
-               // text = paper.text(x1, y1 - 10, i);
-              //  text.attr("fill", "#dddddd" )
 
-              //  this.texts[0].push(text);
+
+
+                text = paper.text(x1, y1 - 10, i);
+                text.attr("fill", "#dddddd" )
+
+                this.texts[0].push(text);
             }
 
 
@@ -200,30 +200,30 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
                 var x2 = colCount * dist + offsetX;
 
                 var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
-                
+
 				paths[1].push( pathStr );
 
-				
+
 				//var line = paper.path(pathStr);
 
 
                 //line.attr(style);
 
 
-                //text = paper.text(x1 - 10, y1, i);
-               // text.attr("fill", "#dddddd");
+                text = paper.text(x1 - 10, y1, i);
+                text.attr("fill", "#dddddd");
 
-               // this.texts[2].push(text);
+                this.texts[2].push(text);
 
 
             }
-			
-			
+
+
 			var line = paper.path(paths[0].join(" "));
 
 			set.push(line);
 			line.attr(style);
-			
+
 			var line = paper.path(paths[1].join(" "));
 			line.attr(style);
 
@@ -232,7 +232,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
         },
 
         updateTexts: function(startX, startY) {
-		/*
+		//*
             for (var i = 0; i < 1; i++) {
                 for (var j = 0; j < this.texts[i].length; j++) {
                     this.texts[i][j].attr("text", startX + j)
@@ -244,8 +244,8 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
                     this.texts[i][j].attr("text", startY + j)
                 }
             }
-			
-			*/
+
+			//*/
         }
 
     }
@@ -434,9 +434,9 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
             var id = "el_" + this.objects.length;
 
-			obj.el.node.innerHTML = '<animate id="' + id + 'gros" begin="0s;' + id + 'petit.end" attributeName="rx" from="0" to="25" dur=".8s"></animate><animate id="' + id + 'petit" begin="' + id + 'gros.end" attributeName="rx" from="25" to="0" dur=".5s"></animate><animate  begin="0s;' + id + 'petit.end" attributeName="ry" from="0" to="25" dur=".8s"></animate><animate  begin="` + id + `gros.end" attributeName="ry" from="25" to="0" dur=".5s"></animate>'; //
+			//obj.el.node.innerHTML = '<animate id="' + id + 'gros" begin="0s;' + id + 'petit.end" attributeName="rx" from="0" to="25" dur=".8s"></animate><animate id="' + id + 'petit" begin="' + id + 'gros.end" attributeName="rx" from="25" to="0" dur=".5s"></animate><animate  begin="0s;' + id + 'petit.end" attributeName="ry" from="0" to="25" dur=".8s"></animate><animate  begin="` + id + `gros.end" attributeName="ry" from="25" to="0" dur=".5s"></animate>'; //
 
-			/*
+			//*
             obj.el.node.innerHTML = `
 
 				<animate id="` + id + `gros" begin="0s;` + id + `petit.end" attributeName="rx" from="0" to="25" dur=".8s"></animate>
@@ -609,7 +609,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 			//*/
         },
-		
+
 		refreshNoAnimation: function() {
             var arena = ui.arena;
             var path = [
@@ -706,11 +706,11 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
         getLine : function ( ) {
 			var line;
-			if ( this.used.length > 5 ) {
+			if ( this.used.length > 25 ) {
 				ui.arena.repaintLines();
 			}
-			
-			
+
+
 			if (!this.pool.length ) {
 
 				line = v.paper.path(["M", 0, 0, "L", 0, 0]);
@@ -771,7 +771,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
         lines: [],
         region: [0, 0, 5, 5],
-        offset: [20, 210],
+        offset: [20, 250],
 
         colCount: 30,
         rowCount: 15,
@@ -870,7 +870,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 
 			ui.x.board.moves.render(line.coords, line.color);
-			
+
 			ui.arena.linesRepo.addLine( line );
 
         },
@@ -1002,14 +1002,14 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 			if ( !this.lines[r] ) this.lines[ r ] = [];
 			if ( !this.lines[r][c] ) this.lines[r][c] = []
-			
+
 			if ( !this.lines[r][c][line.color] ) this.lines[r][c][line.color] = ""
 
 
 			//var line = new ui.arena.linesRepo.Line( coords, color );
 
-			this.lines[r][c][line.color] += line.subpath; 
-			
+			this.lines[r][c][line.color] += line.subpath;
+
 			//delete line;
 		},
 
@@ -1028,9 +1028,9 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 				var lines = this.lines[i];
 				for ( var j = startY ; j<= endY; j++ ) {
 					if ( !lines[j] ) continue;
-					
+
 					//callback( lines[ j ] ) ;
-					
+
 					for ( var k = lines[j].length - 1; k>=0; k-- ) {
 						if ( !lines[j][k] ) continue;
 						//if (geo.isOutside(lines[j][k].point, region)) continue;
@@ -1242,8 +1242,9 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
             for (var i = 0; i < cfg.colCount / 50; i++) {
 				for ( var j = 0; j < cfg.rowCount / 50; j++ )
                 //
+				api.addTrap(Math.floor(Math.random() * cfg.colCount), Math.floor(Math.random() * cfg.rowCount));
 
-                api.addTrap(i, j);
+                //api.addTrap(i*50, j);
             }
             //*/
 
