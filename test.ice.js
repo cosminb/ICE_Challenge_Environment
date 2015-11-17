@@ -44,10 +44,11 @@ test.ui_z_movesMatrix = {
 
 test.ui_z_moves = {
 	multipleLines : function ( ) {
+		ui.z.main.init();
 		ui.z.main.render()
-		
-		for ( var i = 0; i< 20; i++ ) {
-			for ( var j = 0; j<20; j++ ) {
+
+		for ( var i = 0; i< 30; i++ ) {
+			for ( var j = 0; j<30; j++ ) {
 
 				this.addLine( i, j ) ;
 			}
@@ -59,8 +60,52 @@ test.ui_z_moves = {
 
 		window.setTimeout( function( )  {
 
-			ui.z.moves.renderMove( (i+j) %2 , i, j, i+1, j+1 );
+			ui.z.main.addMove( (i+j) %2 , i, j, i+1, j+1 );
 
-		}, (i *20 + j) * 150 );
+		}, (i *20 + j) * 1000 );
 	},
+}
+
+test.dt = {
+	getRandomPoint: function(point) {
+		var x = 1 - Math.floor(3 * Math.random());
+		var y = 1 - Math.floor(3 * Math.random());
+		return [point[0] + x, point[1] + y];
+	},
+
+	color : 0,
+	start : [10,10],
+	simulate: function() {
+		do {
+			var point = this.getRandomPoint(this.start);
+		} while (
+			((point[0] == this.start[0]) && (point[1] == this.start[1])) || (point[0] < 0 || point[0] > cfg.colCount) || (point[1] < 0 || point[1] > cfg.rowCount)
+		);
+
+		this.color = 1 - this.color
+
+		ui.z.main.addMove(this.color, this.start[0], this.start[1], point[0], point[1]);
+
+		this.start = point;
+
+	},
+
+	stop_start : false,
+	go: function() {
+		this.simulate();
+		if ( !this.stop_start )
+			window.setTimeout( function (  ) {
+				test.dt.go();
+			}, cfg.animationStep)
+
+	},
+
+	run : function ( ) {
+		ui.z.main.init();
+		ui.z.main.render()
+
+		console.log( "yt") ;
+		this.go();
+	},
+
 }
