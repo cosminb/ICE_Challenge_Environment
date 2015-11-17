@@ -192,6 +192,12 @@ ui.z.board = {
 	    this.paper = Raphael(0, 0, 1000, 1000);
 	},
 
+	
+	fillRect : function ( x1, y1, w, h, color ) {
+		var rect = this.paper.rect( x1, y1, w, h );
+		rect.attr("fill", color );
+		return rect;
+	},
 
 	path : function ( path ) {
 		var line = this.paper.path( path );
@@ -239,6 +245,8 @@ ui.z.main =  {
 		ui.z.board.render();
 		ui.z.grid.render();
 		ui.z.oldLines.render();
+		
+		ui.z.gates.render();
 	},
 
 	init : function ( ) {
@@ -257,7 +265,7 @@ ui.z.main =  {
 
 		
 		window.requestAnimationFrame( function ( ) { 
-			ui.z.moves.renderMove( player, x1, y1, x2, y2 ); 
+			ui.z.moves.add( player, x1, y1, x2, y2 ); 
 			ui.z.movesMatrix.addMove(player, x1, y1, x2, y2 ); 			
 		});
 	},
@@ -319,12 +327,38 @@ ui.z.grid = {
 }
 
 ui.z.gates = {
+	obj : {
+		middle : undefined, 
+		left : undefined, 
+		right : undefined
+	},
+	
+	render : function ( ) {
+		
+			var dist = cfg.z.dist;
+			var gateHeight = (cfg.gateEnd - cfg.gateStart) * dist;
+			var gateWidth = dist *10;
+			var gateStart = cfg.gateStart * dist
+			var middleX = cfg.colCount / 2 * dist;
+			
+			//border
+			//var border = ui.z.board.path( 0, 0, cfg.colCount * dist, cfg.rowCount * dist, "rgba(255, 255, 255, 0.7 )" );
+			
+			//middle 
+			this.obj.middle = ui.z.board.fillRect (  middleX,  0, dist * 2, cfg.rowCount * dist, "rgba(255, 255, 255, 0.7 )"  );
+			
+			//left gate
+			this.obj.left = ui.z.board.fillRect ( 0, gateStart , gateWidth, gateHeight, "rgba(255, 255, 255, 0.7 )");
+			
+			//right gate
+			this.obj.right = ui.z.board.fillRect ( cfg.colCount * dist - gateWidth, gateStart, gateWidth, gateHeight, "rgba(255, 255, 255, 0.7 )");
 
+	}
 }
 
 ui.z.traps = {
 	add : function ( x1, y1, x2, y2 ) {
-
+		
 	},
 
 	render : function ( trap ) {
@@ -335,7 +369,7 @@ ui.z.elfs = {
 }
 
 ui.z.moves = {
-	renderMove : function (player, x1, y1, x2, y2 ) {
+	add : function (player, x1, y1, x2, y2 ) {
 
 
 		var dist = cfg.z.dist;
@@ -718,7 +752,7 @@ ui.f.main = {
 	},
 	
 	addMove : function ( color, x1, y1, x2, y2 ) {
-		ui.f.moves.renderMove( color, x1, y1, x2, y2 );
+		ui.f.moves.add( color, x1, y1, x2, y2 );
 	},
 }
 
@@ -759,7 +793,7 @@ ui.f.traps = {
 }
 
 ui.f.moves = {
-	renderMove : function ( player, x1, y1, x2, y2 ) {
+	add : function ( player, x1, y1, x2, y2 ) {
 		var color = cfg.colors[ player ] ;
 		var dist = cfg.f.dist;
 		window.requestAnimationFrame( function ( ) {
