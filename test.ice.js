@@ -146,6 +146,7 @@ test.dt2 = {
 		this.color = 1 - this.color
 
 		ui.z.main.addMove(this.color, this.start[0], this.start[1], point[0], point[1]);
+		ui.f.main.addMove(this.color, this.start[0], this.start[1], point[0], point[1]);
 
 		this.start = point;
 
@@ -156,18 +157,22 @@ test.dt2 = {
 		this.simulate();
 		if ( !this.stop_start )
 			window.setTimeout( function (  ) {
-				test.dt.go();
+				test.dt2.go();
 			}, cfg.animationStep)
 
 	},
 
 	run : function ( ) {
-				
+	
+	arena.init();
+						ui.z.main.init();
+		ui.z.main.render();
+		
 		ui.f.main.init();
 		ui.f.main.render();
 
 		console.log( "yt") ;
-		//this.go();
+		this.go();
 	},
 
 }
