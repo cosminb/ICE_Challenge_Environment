@@ -24,9 +24,9 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 </svg>
 
+<canvas id="f_canvas" width=200 height=200 style='width:200px; height:200px; position : absolute; left : 0px; top : 0px;'> </canvas>
 
 <script src="libs/raphael-min.js"></script>
-<script src="test.ice.js"></script>
 
 
 <script>
@@ -53,7 +53,7 @@ var cfg = {
 
 
 	//to be updated
-	rowCount : 1000,
+	rowCount : 500,
 	colCount : 1000,
 	startX   : 0,
 	startY   : 0,
@@ -175,20 +175,21 @@ ui.z.draw = {
 ui.z.style = {
 
 	offsetX : 10,
-	offsetY : 10,
+	offsetY : 200,
 
 	grid : {
 		'stroke': "rgb(200,200,200,0.7)",
 		'stroke-width': 1
 	},
-
-
-
 }
+
 ui.z.board = {
 
 	render : function ( ) {
 	    this.paper = Raphael(ui.z.style.offsetX, ui.z.style.offsetY, 1000, 1000);
+		
+			    this.paper = Raphael(ui.z.style.offsetX, ui.z.style.offsetY, 1000, 1000);
+
 	},
 
 
@@ -204,6 +205,7 @@ ui.z.board = {
 	},
 
 	animateLine : function ( line, animationStep ) {
+			line.show();
 			var path = line.node;
 			//path.setAttribute( "class", "z_move");
 
@@ -240,34 +242,24 @@ ui.z.main =  {
 	},
 
 	init : function ( ) {
-		this.computeDimensions();
-
 		ui.z.movesMatrix.init();
+		ui.z.region.init();
 	},
-
-	computeDimensions : function ( ) {
-
-	    ui.z.region.setXY(
-			Math.floor( cfg.startX - cfg.z.rowCount / 2 ),
-			Math.floor( cfg.startY - cfg.z.colCount / 2 )
-	    );
-
-	},
-
 
 	addMove : function ( player, x1, y1, x2, y2 ) {
 		if ( ui.z.region.isOutside(x1, y1, x2, y2 ) ){
-
-
-			if ( ui.z.region.update( x1, y1, x2, y2 ) ) {
-				this.refresh();
+		
+			var mustUpdate = ui.z.region.update( x1, y1, x2, y2 );
+			if ( mustUpdate ) {
+				window.requestAnimationFrame( this.refresh );
 			}
 		}
 
-		ui.z.moves.renderMove( player, x1, y1, x2, y2 );
-
-		ui.z.movesMatrix.addMove(player, x1, y1, x2, y2 );
-
+		
+		window.requestAnimationFrame( function ( ) { 
+			ui.z.moves.renderMove( player, x1, y1, x2, y2 ); 
+			ui.z.movesMatrix.addMove(player, x1, y1, x2, y2 ); 			
+		});
 	},
 
 	refresh : function ( ) {
@@ -364,7 +356,10 @@ ui.z.moves = {
 
 		var color = cfg.colors[ player ];
 
-		this.animateLine( line, path,color  );
+		
+		window.requestAnimationFrame( function ( ) {
+			ui.z.moves.animateLine( line, path,color  );
+		});
 
 	},
 
@@ -397,7 +392,7 @@ ui.z.moves = {
 		var line;
 
 
-		if ( this.used.length > 5 ) {
+		if ( this.used.length > 105 ) {
 			//ui.arena.repaintLines();
 			ui.z.oldLines.update();
 			this.clear();
@@ -411,7 +406,6 @@ ui.z.moves = {
 
 		} else {
 			line = this.pool.pop();
-			line.show();
 		}
 
 		this.used.push( line );
@@ -447,15 +441,25 @@ ui.z.oldLines = {
 		var dist = cfg.z.dist;
 		var offsetX = -ui.z.region.x1*dist + ui.z.style.offsetX;
 		var offsetY = -ui.z.region.y1*dist + ui.z.style.offsetY;
-		var transform = "T " + offsetX + " "+offsetY;
+		this.transform = "T " + offsetX + " "+offsetY;
+//*
+		this.path1 = ui.z.movesMatrix.getPath( 0, ui.z.region );
 
-		path = ui.z.movesMatrix.getPath( 0, ui.z.region );
-		this.lines[0].attr("path", path );
-		this.lines[0].transform( transform );
 
-		path = ui.z.movesMatrix.getPath( 1, ui.z.region );
-		this.lines[1].attr("path", path );
-		this.lines[1].transform( transform );
+		this.path2 = ui.z.movesMatrix.getPath( 1, ui.z.region );
+	//*/
+	
+		window.requestAnimationFrame( function ( ) { ui.z.oldLines.updateLines() } );
+	},
+	
+	updateLines : function ( )  {
+
+			this.lines[0].attr("path", this.path1 );
+		this.lines[0].transform( this.transform );
+		
+				this.lines[1].attr("path", this.path2 );
+		this.lines[1].transform( this.transform );
+
 	},
 }
 
@@ -545,6 +549,12 @@ ui.z.region = {
 		if (this.y2 < y1 || this.y2 < y2) return true;
 
 	},
+	init : function ( ) {
+		this.setXY(
+			Math.floor( cfg.startX - cfg.z.rowCount / 2 ),
+			Math.floor( cfg.startY - cfg.z.colCount / 2 )
+	    );
+	}
 }
 
 ui.z.movesMatrix = {
@@ -626,10 +636,141 @@ ui.z.movesMatrix = {
 	},
 }
 
+ui.f = {}
 
-var fPreview = {
+ui.f.style = {
 
+	offsetX : 10, 
+	offsetY : 10,
+	
+	width : 0, 
+	height: 0, 
+	dist  : 0, 
+	
+	
 }
 
 
+ui.f.board = {
+	render : function ( ) {
+		this.canvas = document.getElementById('f_canvas');
+		
+		this.update();
+		
+		if (this.canvas.getContext){
+			  this.ctx = this.canvas.getContext('2d');
+		}
+		
+	},
+	
+	update: function ( ) {	
+
+		this.canvas.width = cfg.f.width ;
+		this.canvas.height= cfg.f.height;
+		
+		this.canvas.style.left = ui.f.style.offsetX;
+		this.canvas.style.top  = ui.f.style.offsetY;
+		
+	},
+	
+	line : function ( x1, y1, x2, y2, style ) {
+	},
+	
+	rect : function ( x1, y1, w, h, color ) {
+	
+		console.log( x1, y1, w, h, color  );
+		
+		this.ctx.lineWidth = 1;
+
+		this.ctx.strokeStyle = color;
+
+		this.ctx.strokeRect( x1, y1, w, h );
+	},
+}
+
+ui.f.main = {
+	render : function ( ) {
+		ui.f.board.render();
+		ui.f.gates.render();
+	},
+	init : function ( ) {
+		cfg.f.dist   = 200 / (cfg.rowCount) / 2;
+		cfg.f.width  = (cfg.colCount + 1)  * cfg.f.dist;
+		cfg.f.height = (cfg.rowCount + 1)* cfg.f.dist;
+		
+		console.log( cfg.f );
+		
+	}
+}
+
+ui.f.grid = {
+	render : function (  ) {
+			var dist = cfg.f.dist;
+			
+		    for (var i = 0; i < cfg.colCount; i++) {
+                var x1 = i * dist;
+                var y1 = 0;
+
+                var x2 = x1;
+                var y2 = cfg.rowCount * dist - dist;
+                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
+                var line = ui.f.board.line(v.ctx, x1, y1, x2, y2, style ) //paper.path(pathStr);
+
+            }
+
+
+
+            for (var i = 0; i < cfg.rowCount; i++) {
+                var y1 = i * dist;
+                var x1 = 0;
+
+                var y2 = y1;
+                var x2 = cfg.colCount * dist - dist;
+
+                var pathStr = "M" + x1 + ", " + y1 + " L" + x2 + ", " + y2;
+                var line = draw.line(v.ctx, x1, y1, x2, y2, style ) //paper.path(pathStr);
+
+            }
+	}
+}
+
+ui.f.gates = {
+	render : function (  ) {
+	
+			var dist = cfg.f.dist;
+			
+			ui.f.board.rect( 0, 0, cfg.colCount * dist, cfg.rowCount * dist, "rgba(255, 255, 255, 0.7 )" );
+			
+			/*
+	            var rect = draw.rect( v.ctx, 0, 0, cfg.colCount * dist, cfg.rowCount * dist, style);
+
+            var gw = cfg.gateEnd - cfg.gateStart;
+
+            var rect = draw.rect(v.ctx, 0, cfg.gateStart * dist, dist +1, gw * dist, style );
+
+            var rect = draw.rect(v.ctx, cfg.colCount * dist-1, cfg.gateStart * dist, dist +1, gw * dist, style );
+
+
+            var x = cfg.colCount * dist / 2;
+            var maxY = cfg.rowCount * dist;
+            var path = ["M", x, 0, "L", x, maxY]
+            var item = draw.line( v.ctx, x, 0, x, maxY, style )
+			
+			*/
+
+	},
+}
+
+ui.f.elfs = {
+}
+
+ui.f.traps = {
+}
+
+ui.f.moves = {
+}
+
 </script>
+
+
+<script src="test.ice.js"></script>

@@ -102,10 +102,78 @@ test.dt = {
 
 	run : function ( ) {
 		ui.z.main.init();
-		ui.z.main.render()
+		ui.z.main.render();
+		
+				
+		ui.f.main.init();
+		ui.f.main.render();
 
 		console.log( "yt") ;
 		this.go();
+		
+		
+var xxx = 0;
+
+setInterval ( function ( ) {
+	cfg.animationStep = xxx;
+	xxx = 200 - xxx;
+	}, 35000 );
+
+	
+	
 	},
 
 }
+
+
+
+test.dt2 = {
+	getRandomPoint: function(point) {
+		var x = 1 - Math.floor(3 * Math.random());
+		var y = 1 - Math.floor(3 * Math.random());
+		return [point[0] + x, point[1] + y];
+	},
+
+	color : 0,
+	start : [10,10],
+	simulate: function() {
+		do {
+			var point = this.getRandomPoint(this.start);
+		} while (
+			((point[0] == this.start[0]) && (point[1] == this.start[1])) || (point[0] < 0 || point[0] > cfg.colCount) || (point[1] < 0 || point[1] > cfg.rowCount)
+		);
+
+		this.color = 1 - this.color
+
+		ui.z.main.addMove(this.color, this.start[0], this.start[1], point[0], point[1]);
+
+		this.start = point;
+
+	},
+
+	stop_start : false,
+	go: function() {
+		this.simulate();
+		if ( !this.stop_start )
+			window.setTimeout( function (  ) {
+				test.dt.go();
+			}, cfg.animationStep)
+
+	},
+
+	run : function ( ) {
+				
+		ui.f.main.init();
+		ui.f.main.render();
+
+		console.log( "yt") ;
+		//this.go();
+	},
+
+}
+
+
+	
+test.dt2.run()
+
+
