@@ -3,8 +3,8 @@
         background: #1F1F1F;
 		overflow : hidden;
     }
-	
-	
+
+
 	svg {
     transform: translateZ(1);
 }
@@ -18,9 +18,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 <defs>
   <filter id="theBlur"
-  filterUnits="userSpaceOnUse"
-  x="-20%" y="-20%"
-  width="140%" height="140%"
+
   >
     <feGaussianBlur in="SourceGraphic" stdDeviation="10"  result="blur2"/>
             <feMerge>
@@ -114,7 +112,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
         setup: function() {
             //container for drawings
-            v.paper = Raphael(10, 10, 1024, 1000);
+            v.paper = Raphael(10, 10, 10240, 10000);
 
             //lines contain the gri
             v.lines = v.paper.set();
@@ -222,7 +220,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 
             }
-		
+
 
 			var line1 = paper.path(paths[0].join(" "));
 
@@ -234,16 +232,16 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 			set.push(line2);
 
-			
-			var ax =0; 
+/*
+			var ax =0;
 			window.setInterval ( function ( ) {
 				ax++;
-				
+
 				line1.animate( { "stroke-width" : (ax % 2) ? 1 : 12, "path" : (ax % 2) ? "M100,100L200,10" + paths[0].join(""): paths[0].join("") }, 20000 );
-			
-			
+
+
 				line2.animate( {"stroke-width" : (ax % 2) ? 1 : 12, "path" : (ax % 2) ? "M100,100L200,10" +paths[1].join("") : paths[1].join("") }, 20000 );
-			}, 20000 );
+			}, 20000 );*/
         },
 
         updateTexts: function(startX, startY) {
@@ -519,7 +517,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
     }
 
-	
+
 	ui.x.board.elfs = {
         refresh: function() {
             for (var i in this.objects)
@@ -593,17 +591,17 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 
         },
-		
+
 		moveElf : function ( index, x, y ) {
 			if ( !this.objects[index] ) return;
-			
-			
+
+
 			this.objects[index].point[0] = x;
 			this.objects[index].point[1] = y;
-			
+
 			this.positionElf( this.objects[ index ] );
 		},
-		
+
 
         positionElf: function(elf) {
 
@@ -631,8 +629,8 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
         },
 
     }
-	
-	
+
+
     ui.x.board.oldLines = {
 		//when changing the viewport, redraw lines that were previously there
         render: function() {
@@ -665,6 +663,9 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
         },
 
         refresh: function() {
+			return this.refreshNoAnimation();
+
+
             var arena = ui.arena;
             var path = [
                 [],
@@ -677,18 +678,18 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
             var delta = 5;
             var region = [ arena.region[0] - delta, arena.region[1] -delta , arena.region[2] + delta, arena.region[3] + delta];
 
-			debug.clear( "pathsArena" );
+			//debug.clear( "pathsArena" );
 
 			ui.arena.linesRepo.eachLineInRegion( region, function ( color, value ) {
 
 
-							debug.inc( "pathsArena" );
+				//			debug.inc( "pathsArena" );
 
 							path[color].push( value )//"M", value.coords[0], value.coords[1], "L", value.coords[2] , value.coords[3] );
 
 			});
 
-			debug.log( "pathsArena" );
+			//debug.log( "pathsArena" );
 
 /*
             for (var i in arena.lines) {
@@ -741,24 +742,45 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 		refreshNoAnimation: function() {
             var arena = ui.arena;
-            var path = [
-                [],
-                []
-            ]
+            var path ;
+
+            var region =arena.region;// [ arena.region[0] - delta, arena.region[1] -delta , arena.region[2] + delta, arena.region[3] + delta];
+
+
+            var path = ui.arena.linesRepo.getPath( 0, region );
+
+
+            if (path)
+                this.paintedLines[0].attr({
+                    path: path
+            });
+
+            var path = ui.arena.linesRepo.getPath( 1, region );
+
+            if (path)
+                this.paintedLines[1].attr({
+                    path: path
+            });
+
+
+
+
 
             var offsetX = arena.region[0] * arena.dist - arena.offset[0];
             var offsetY = arena.region[1] * arena.dist - arena.offset[1];
 
-            var delta = 5;
-            var region = [ arena.region[0] - delta, arena.region[1] -delta , arena.region[2] + delta, arena.region[3] + delta];
 
+			this.paintedLines[0].transform(["T", -offsetX , -offsetY ] );
 
+            this.paintedLines[1].transform(["T", -offsetX, -offsetY ] );
+
+ /*
 			ui.arena.linesRepo.eachLineInRegion( region, function (color,  value ) {
 
 
 							path[color].push( value )//"M", value.coords[0], value.coords[1], "L", value.coords[2] , value.coords[3] );
 
-			});
+			});*/
 
 /*
             for (var i in arena.lines) {
@@ -768,16 +790,11 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
                 path[value.color].push("M", value.coords[0] - offsetX, value.coords[1]  - offsetY, "L", value.coords[2]  - offsetX, value.coords[3]  - offsetY);
             };
 */
-
-            if (path[0].length)
-                this.paintedLines[0].attr({
-                    path: path[0].join()
-                });
-
+/*
             if (path[1].length)
                 this.paintedLines[1].attr({
                     path: path[1].join()
-                });
+                });*/
 
             /*
             var dx = arena.region[0] - arena.oldRegion[0];
@@ -802,9 +819,6 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 			//*
 
-			this.paintedLines[0].transform(["T", -offsetX , -offsetY ] );
-
-            this.paintedLines[1].transform(["T", -offsetX, -offsetY ] );
 
 			//*/
         }
@@ -863,8 +877,8 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
             },
 
         render: function(coords, color) {
-		
-		
+
+
 		            var arena = ui.arena;
             var offsetX = arena.region[0] * arena.dist - arena.offset[0];
             var offsetY = arena.region[1] * arena.dist - arena.offset[1];
@@ -879,7 +893,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 				"stroke-width": 3
             }, ui.arena.duration);
 
-			
+
 
             return line;
 
@@ -938,7 +952,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
             ui.x.board.traps.refresh();
             ui.x.board.refresh();
-			
+
 			ui.x.board.elfs.refresh();
 
             ui.x.board.grid.updateTexts(ui.arena.region[0], ui.arena.region[1]);
@@ -971,7 +985,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 			}
 
 
-            if (geo.isOutsideWithOffset(line.coords, this.region, 4)) {
+            if (geo.isOutside(line.coords, this.region)) {
 
 				//ui.arena.linesRepo.addLine( coords, color );
 
@@ -996,54 +1010,54 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 			ui.arena.linesRepo.addLine( line );
 
+
         },
+
 
         updateRegion: function(line, delta) {
 
-			var delta = delta || 2;
-			//the view region should be adjusted so the current line that is draw is visible
-            var newRegion = [].concat(this.region);
-            var h = this.rowCount;
-            var w = this.colCount;
-            var region = this.region;
+			var region = this.region;
+			var newRegion = [region[0], region[1]];
 
-            if (region[0] + delta >= line[0]) {
-                newRegion[0] = region[0] - delta - 1;
-            } else if (region[2] - delta <= line[0]) {
-                newRegion[0] = region[0] + delta + 1;
-            };
-
-            if (region[1] + delta >= line[1]) {
-                newRegion[1] = region[1] - delta - 1;
-            } else if (region[3] - delta <= line[1]) {
-                newRegion[1] = region[1] + delta + 1;
-            };
-
-            var updated = true;
-
-            if (newRegion[0] < 0) newRegion[0] = 0
-            if (newRegion[1] < 0) newRegion[1] = 0;
-
-            newRegion[2] = newRegion[0] + w;
-            newRegion[3] = newRegion[1] + h;
-
-            if (newRegion[2] > cfg.colCount) {
-                newRegion[2] = cfg.colCount;
-                newRegion[0] = newRegion[2] - w;
+            if (region[0] > line[0] || region[0] > line[2]) {
+				newRegion[0] = region[0] - 5;
             }
 
 
-            if (newRegion[3] > cfg.rowCount) {
-                newRegion[3] = cfg.rowCount;
-                newRegion[1] = newRegion[3] - h;
+            if (region[2] < line[0] || region[2] < line[2]) {
+				newRegion[0] = region[0] + 5;
             }
 
-            if (newRegion[0] == region[0] && newRegion[1] == region[1]) return updated = false;
+
+
+            if (region[1] > line[1] || region[1] > line[3]) {
+				newRegion[1] = region[1] - 5;
+			}
+
+
+
+            if (region[3] < line[1] || region[3] < line[3]) {
+				newRegion[1] = region[1] + 5;
+			}
+
+
+
+			if ( newRegion[0] < 0 ) newRegion[0] = 0;
+			if ( newRegion[1] < 0 ) newRegion[1] = 0;
+
+			if ( newRegion[0] % 5 != 0 ) newRegion[0] = newRegion[0] - newRegion[0] % 5;
+
+			if ( newRegion[1] % 5 != 0 ) newRegion[1] = newRegion[1] - newRegion[1] % 5;
+
+
+            newRegion[2] = newRegion[0] + ui.arena.colCount;
+            newRegion[3] = newRegion[1] + ui.arena.rowCount;
+            if (newRegion[0] == region[0] && newRegion[1] == region[1]) return false;
 
             this.oldRegion = this.region;
             this.region = newRegion;
 
-            return updated;
+            return true;
         },
 
         setRegion : function ( coords, delta ) {
@@ -1059,6 +1073,24 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 
 	ui.arena.linesRepo = {
+
+		matrix : [],
+		init : function ( ) {
+			var maxRow = cfg.rowCount;
+			var maxCol = cfg.colCount;
+
+			for ( var k= 0; k<2; k++ ) {
+				this.matrix[k] = new Array( Math.ceil((maxRow+1)));
+
+				for ( var i = 0; i<= maxRow; i++ ) {
+					this.matrix[k][i] = new Array( Math.ceil((maxCol+1)) );
+
+					for ( var j = 0; j<= maxCol; j++ ) {
+						this.matrix[k][i][j] =  "";
+					}
+				}
+			}
+		},
 
 		Line : function ( coords, color ) {
 			//this.point = coords;
@@ -1084,56 +1116,49 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 			var r,c, pointA, pointB;
 
 			var coords = line.coords;
-			if ( coords[0] < coords[2] ) {
-				if ( coords[1] <= coords[3] ) {
-					r = coords[0];
-					c = coords[1]
+
+			var x1 = coords[0];
+			var y1 = coords[1];
+			var x2 = coords[2];
+			var y2 = coords[3];
+
+
+			var r = Math.floor( Math.min( x1, x2 ) / 5 );
+			var c = Math.floor( Math.min( y1, y2 ) / 5 );
+
+			var dist = ui.arena.dist;
+			var subpath = "M"+x1*dist+","+y1*dist+"L"+x2*dist+","+y2*dist;
+
+			this.matrix[ line.color ][ c ][ r ] += subpath;
+		},
+
+		getPath : function ( color, coords) {
+			var arr = [];
+
+			var lines = this.matrix[ color ];
+
+			var i1 = Math.floor( coords[0] / 5 );
+			var i2 = Math.ceil( coords[2] / 5 );
+
+			var j1 = Math.floor( coords[1] / 5 );
+			var j2 = Math.ceil( coords[3] / 5 );
+
+
+			for ( var i = i1; i<=i2; i++ ) {
+				for ( var j = j1; j<=j2; j++ ) {
+					arr.push( lines[ j ][i] )
 				}
-				else {
-					r = coords[0];
-					c = coords[3];
-				}/*
-				pointA = new ui.arena.linesRepo.Point( coords[ 0] , coords[1 ] );
-				pointB = new ui.arena.linesRepo.Point( coords[ 2] , coords[3 ] );*/
-			}
-			else {
-				if ( coords[3] <= coords[1] ) {
-					r = coords[2];
-					c = coords[3]
-				}
-				else {
-					r = coords[2];
-					c = coords[1];
-				}
-				/*
-				pointB = new ui.arena.linesRepo.Point( coords[ 0] , coords[1 ] );
-				pointA = new ui.arena.linesRepo.Point( coords[ 2] , coords[3 ] );
-				*/
 			}
 
+			var str = arr.join("");
 
-			/*
-			if ( pointA.y <= pointB.y ) {
-				r = pointA.x;
-				c = pointA.y
+			if ( !str ) {
+				console.log( "yo", coords, i1, i2, j1, j2 );
 			}
-			else {
-				r = pointA.x;
-				c = pointB.y;
-			}
-			*/
 
-			if ( !this.lines[r] ) this.lines[ r ] = [];
-			if ( !this.lines[r][c] ) this.lines[r][c] = []
+			delete arr;
 
-			if ( !this.lines[r][c][line.color] ) this.lines[r][c][line.color] = ""
-
-
-			//var line = new ui.arena.linesRepo.Line( coords, color );
-
-			this.lines[r][c][line.color] += line.subpath;
-
-			//delete line;
+			return str;
 		},
 
 		eachLineInRegion : function ( region, callback ) {
@@ -1324,6 +1349,12 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 			ui.arena.noRender = false;
 		},
 
+		xfill4 : function  ( ) {
+				ui.arena.noRender = true;
+			server.fill4( 220000);
+			ui.arena.noRender = false;
+
+			},
         fill4 : function ( ) {
 			for ( var i = 0; i<=cfg.colCount - 1; i++ ) {
 				for ( var j = 0; j <= cfg.rowCount - 1; j++ ) {
@@ -1343,7 +1374,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 				}
 			}
         },
-		
+
 		        fill5 : function (x, y, x1, y1 ) {
 			for ( var i = x; i<=x1; i++ ) {
 				for ( var j = y; j <= y1; j++ ) {
@@ -1409,8 +1440,6 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 			var index = this.index = 0;
 			var list = this.xlist;
-
-			console.log( list[0], list[10] );
 			this.do_dt4();
         },
 
@@ -1476,16 +1505,16 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 
 
         },
-		
+
 		addElf : function  ( index, x, y)  {
 		ui.x.board.elfs.addElf(index, x, y);
 		},
-		
+
 		moveElf : function ( index, x, y, color) {
 		ui.x.board.elfs.moveElf(index, x, y, color);
 		},
-		
-		
+
+
         addNextMove: function(color, pointX, pointY) {
 
             this.addMove(this.ballPosition, [pointX, pointY], parseInt(color)-1);
@@ -1732,10 +1761,12 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
     }
 
 
+    ui.arena.linesRepo.init();
+
 
 
     //: test the rendering and the server
-server.dummyTest();
+//server.dummyTest();
 //server.re_fill4()
 //server.fill4();
 </script>

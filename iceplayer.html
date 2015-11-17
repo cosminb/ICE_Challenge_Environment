@@ -1,0 +1,561 @@
+<style>
+
+    body {background: #1F1F1F;overflow : hidden;}
+
+
+</style>
+
+
+<svg width="1400" height="1400"
+xmlns="http://www.w3.org/2000/svg" version="1.1"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+
+
+<defs>
+  <filter id="theBlur">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="10"  result="blur2"/>
+            <feMerge>
+            <feMergeNode in="blur2" />
+            <feMergeNode in="SourceGraphic" />
+        </feMerge>
+  </filter>
+
+</defs>
+
+</svg>
+
+
+<script src="libs/raphael-min.js"></script>
+<script src="test.ice.js"></script>
+
+
+<script>
+
+
+
+
+var ui = {}
+ui.z = {};
+
+var cfg = {
+
+	//cfg for zoomPreview
+	z : {
+		rowCount : 20,
+		colCount : 40,
+
+		dist : 30,
+	},
+
+	//cfg for fullPreview
+	f : {
+	},
+
+
+	//to be updated
+	rowCount : 0,
+	colCount : 0,
+	startX   : 0,
+	startY   : 0,
+
+	colors : [
+		"#BADA55",
+		"#5ADBEE"
+	],
+
+
+	maxRow   : 500,
+	maxCol   : 1000,
+
+	animationStep : 200,
+}
+
+var game = {
+	currentX : 0,
+	currentY : 0,
+
+	init : function ( ) {
+
+        this.currentX = cfg.startX;
+        this.currentY = cfg.startY;
+
+	}
+}
+
+
+var api = {
+
+	render : function ( ) {
+	},
+
+	startCompetition : function ( rows, cols, startX, startY ) {
+
+		cfg.rowCount = rowCount;
+        cfg.colCount = colCount;
+
+        cfg.startX = startX;
+        cfg.startY = startY;
+
+
+
+        arena.init();
+        zPreview.init();
+
+	},
+
+	startGame : function (rows, cols, startX, startY ) {
+
+        this.startCompetition( rows, cols, startX, startY );
+
+	},
+
+	addNextMove : function ( ) {
+	},
+
+	addTrap : function ( ) {
+	},
+
+}
+
+
+
+
+function Region ( x1, y1, x2, y2 ) {
+	this.x1 = x1;
+	this.y1 = y1;
+	this.x2 = x2;
+	this.y2 = y2;
+}
+
+Region.prototype.setXYWH = function ( x, y, w, h ) {
+	this.x1 = x;
+	this.y1 = y;
+	this.x2 = x + w;
+	this.y2 = y + h;
+}
+
+
+
+var arena = {
+	gateStart : 0,
+	gateEnd : 0,
+
+
+	init : function ( ) {
+		this.computeDimensions();
+	},
+
+	computeDimensions : function ( ) {
+
+	    this.gateStart = Math.floor(2 / 5 * cfg.rowCount);
+        this.gateEnd = Math.floor(3 / 5 * cfg.rowCount);
+
+	},
+}
+
+
+ui.z.draw = {
+	canvas : function ( ) {
+	},
+
+	line : function ( path, style ) {
+	},
+
+	rectangle : function ( ) {
+	},
+
+	elf : function ( ) {
+	},
+
+
+}
+
+
+
+ui.z.style = {
+
+	offsetX : 10,
+	offsetY : 10,
+
+	grid : {
+		'stroke': "rgb(200,200,200,0.7)",
+		'stroke-width': 1
+	},
+
+
+
+}
+ui.z.board = {
+
+	render : function ( ) {
+	    this.paper = Raphael(ui.z.style.offsetX, ui.z.style.offsetY, 1000, 1000);
+	},
+
+
+	path : function ( path ) {
+		var line = this.paper.path( path );
+		return line;
+	},
+
+	pathWithFilter : function ( path, filter ) {
+		var line = this.path( path );
+			line.node.setAttribute( "filter", filter);
+		return line;
+	},
+
+	animateLine : function ( line, animationStep ) {
+			var path = line.node;
+			//path.setAttribute( "class", "z_move");
+
+			var length = path.getTotalLength();
+			// Clear any previous transition
+			path.style.transition = path.style.WebkitTransition =
+			'none';
+			// Set up the starting positions
+			path.style.strokeDasharray = length + ' ' + length;
+			path.style.strokeDashoffset = length;
+			path.style.strokeWidth = 13;
+			// Trigger a layout so styles are calculated & the browser
+			// picks up the starting position before animating
+			path.getBoundingClientRect();
+			// Define our transition
+			path.style.transition = path.style.WebkitTransition =
+			'all '+(animationStep/1000)+'s linear';
+			// Go!
+			path.style.strokeDashoffset = '0';
+			path.style.strokeWidth = 3;
+
+
+	}
+
+}
+
+ui.z.main =  {
+
+
+	render : function ( ) {
+		ui.z.board.render();
+		ui.z.grid.render();
+	},
+
+	init : function ( ) {
+		this.computeDimensions();
+	},
+
+	computeDimensions : function ( ) {
+
+	    ui.z.region.setXY(
+			Math.floor( cfg.startX - cfg.z.rowCount / 2 ),
+			Math.floor( cfg.startY - cfg.z.colCount / 2 )
+	    );
+
+	},
+
+
+}
+
+
+ui.z.grid = {
+	render : function ( ) {
+
+		var dist = cfg.z.dist;
+		var offsetX = ui.z.style.offsetX;
+		var offsetY = ui.z.style.offsetY;
+
+		var path = [];
+
+
+		for (var i = 0; i <= cfg.z.colCount; i++) {
+			var x1 = i * dist + offsetX;
+			var y1 = offsetY;
+
+			var x2 = x1;
+			var y2 = cfg.z.rowCount * dist + offsetY;
+			var pathStr = "M " + x1 + " " + y1 + " L" + x2 + " " + y2;
+
+			path.push( pathStr );
+
+		}
+
+
+		for (var i = 0; i <= cfg.z.rowCount; i++) {
+			var y1 = i * dist + offsetY;
+			var x1 = 0 + offsetX;
+
+			var y2 = y1;
+			var x2 = cfg.z.colCount * dist + offsetX;
+
+			var pathStr = "M" + x1 + "  " + y1 + " L" + x2 + "  " + y2;
+
+			path.push( pathStr );
+		}
+
+		console.log( path );
+
+
+		var line = ui.z.board.path(path.join(" "));
+
+		line.attr(ui.z.style.grid);
+
+
+		//?remember ?
+		this.gridLine = line;
+
+	},
+}
+
+ui.z.gates = {
+
+}
+
+ui.z.traps = {
+	add : function ( x1, y1, x2, y2 ) {
+
+	},
+
+	render : function ( trap ) {
+	},
+}
+
+ui.z.elfs = {
+}
+
+ui.z.moves = {
+	renderMove : function (player, x1, y1, x2, y2 ) {
+
+
+		var dist = cfg.z.dist;
+		var offsetX = ui.z.style.offsetX;
+		var offsetY = ui.z.style.offsetY;
+
+
+		var  path = [
+					 "M", x1 * dist + offsetX,
+						  y1 * dist + offsetY,
+					 "L", x2 * dist + offsetX,
+						  y2 * dist + offsetY
+					];
+		var path = path.join(" ");
+
+		var line = this.getLine();
+
+		var color = cfg.colors[ player ];
+
+		this.animateLine( line, path,color  );
+
+	},
+
+	animateLine : function( line, path, color ) {
+
+		line.attr("path" , path );
+		line.attr("stroke",color );
+		line.attr("stroke-linecap", "round" );
+
+
+		ui.z.board.animateLine( line, cfg.animationStep );
+
+	},
+
+
+	used : [],
+	pool : [],
+
+	clear: function() {
+		for ( var i=0; i<this.used.length; i++ ) {
+			this.used[i].hide();
+		}
+
+
+		this.pool.push.apply( this.pool, this.used ) // = this.pool.concat( this.used );
+		this.used.length = 0; // = [];
+	},
+
+	getLine : function ( ) {
+		var line;
+
+		/*
+		if ( this.used.length > 25 ) {
+			ui.arena.repaintLines();
+		}
+		*/
+
+
+		if (!this.pool.length ) {
+
+			line = ui.z.board.pathWithFilter(["M", 0, 0, "L", 0, 0], "url(#theBlur)");
+
+		} else {
+			line = this.pool.pop();
+			line.show();
+		}
+
+		this.used.push( line );
+		return line;
+	},
+}
+
+ui.z.oldLines = {
+	render : function ( ) {
+	},
+
+	update : function ( ) {
+	},
+}
+
+ui.z.region = {
+	x1 : 0,
+	y1 : 0,
+	x2 : 0,
+	y2 : 0,
+
+	old : {
+		x1 : 0,
+		y1 : 0,
+		x2 : 0,
+		y2 : 0
+	},
+
+	update : function ( x1, y1, x2, y2 ) {
+
+		var x, y;
+
+		if (this.x1 > x1 || this.x1 > x2) {
+			x = this.x1 - 5;
+		}
+
+
+		if (this.x2 < x1 || region[2] < x2) {
+			x = this.x1 + 5;
+		}
+
+
+
+		if (this.y1 > y1 || this.y1 > y2) {
+			y = this.y1 - 5;
+		}
+
+
+
+		if (this.y2 < y1 || this.y2 < y2) {
+			y = this.y1 + 5;
+		}
+
+
+
+		if ( x < 0 ) x = 0;
+		if ( y < 0 ) y = 0;
+
+		if ( x % 5 != 0 ) x = x - x % 5;
+
+		if ( y % 5 != 0 ) y = y - y % 5;
+
+
+		if ( x==this.x1 && y == this.y1 ) return false;
+
+
+		this.setXY( x, y );
+
+		return true;
+
+	},
+
+	setXY : function ( x1, y1 ) {
+		this.old.x1 = this.x1;
+		this.old.x2 = this.x2;
+
+		this.old.y1 = this.y1;
+		this.old.y2 = this.y2;
+
+
+		this.x1 = x1;
+		this.y1 = y1;
+
+		this.x2 = x1 + cfg.z.colCount;
+		this.y2 = y1 + cfg.z.rowCount;
+	},
+}
+
+ui.z.movesMatrix = {
+	matrix : [],
+
+	init : function ( ) {
+		var maxRow = cfg.maxRow;
+		var maxCol = cfg.maxCol;
+
+		for ( var k= 0; k<2; k++ ) {
+			this.matrix[k] = new Array( maxRow+1 );
+
+			for ( var i = 0; i<= maxRow; i++ ) {
+				this.matrix[k][i] = new Array( maxCol+1 );
+
+				for ( var j = 0; j<= maxCol; j++ ) {
+					this.matrix[k][i][j] =  "";
+				}
+			}
+		}
+	},
+
+	clear : function ( maxCol, maxRow) {
+		for ( var k= 0; k<2; k++ ) {
+			for ( var i = 0; i<= maxRow; i++ ) {
+				for ( var j = 0; j<= maxCol; j++ ) {
+					delete this.matrix[k][i][j] ;
+					this.matrix[k][i][j] = "";
+				}
+			}
+		}
+	},
+
+	addMove : function ( color, x1, y1, x2, y2) {
+
+		/*
+		 _
+		|\  (r,c) = (xmin,ymin)
+									?wut
+		/   (r,c) = (xmin,ymin)
+
+		*/
+
+		var r = Math.floor( Math.min( x1, x2 ) / 5 );
+		var c = Math.floor( Math.min( y1, y2 ) / 5 );
+
+		var subpath = "M"+x1+","+y1+",L"+x2+","+y2;
+
+		this.matrix[ color ][ r ][ c ] += subpath;
+
+	},
+
+	getPath : function ( color, x1, y1, x2, y2) {
+		var arr = [];
+
+		var lines = this.matrix[ color ];
+
+		var i1 = Math.floor( x1 / 5 );
+		var i2 = Math.floor( x2 / 5 );
+
+		var j1 = Math.floor( y1 / 5 );
+		var j2 = Math.floor( y2 / 5 );
+
+
+		for ( var i = i1; i<=i2; i++ ) {
+			for ( var j = j1; j<=j2; j++ ) {
+				arr.push( lines[ i ][j] )
+			}
+		}
+
+		var str = arr.join("");
+
+		delete arr;
+
+		return str;
+
+	},
+}
+
+
+var fPreview = {
+
+}
+
+
+</script>
