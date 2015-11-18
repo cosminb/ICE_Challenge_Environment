@@ -278,6 +278,7 @@ ui.z.main =  {
 
 			var mustUpdate = ui.z.region.update( x1, y1, x2, y2 );
 			if ( mustUpdate ) {
+				ui.f.cube.render();
 				window.requestAnimationFrame( this.refresh );
 			}
 		}
@@ -718,6 +719,7 @@ ui.f.board = {
 		this.ctx.stroke();
 	},
 
+
 	rect : function ( x1, y1, w, h, color ) {
 		this.ctx.lineWidth = 1;
 
@@ -754,17 +756,22 @@ ui.f.board = {
 
 	},
 
-	boxY : function ( x1, z, x2, z, y, color ) {
+	boxY : function ( x1, z1, x2, z2, y, color ) {
 
+		this.ctx.lineWidth = 1;
 
-		ui.f.board.line3d( x1, y, z1, x2, y, z1,color);
+		this.ctx.strokeStyle = color;
 
-		ui.f.board.line3d( x2, y, z1, x2, y, z2,color);
+		this.ctx.fillStyle = color;
 
-		ui.f.board.line3d(x2, y, z2, x1, y, z2, color);
+		this.ctx.beginPath();
+		this.ctx.moveTo( x1- z1*0.7+100, y + z1*0.3 );
+		this.ctx.lineTo( x1- z2*0.7+100, y + z2*0.3 );
+		this.ctx.lineTo( x2- z2*0.7+100, y + z2*0.3 );
+		this.ctx.lineTo( x2- z1*0.7+100, y + z1*0.3 );
 
-		ui.f.board.line3d( x1, y, z1, x1, y, z, color);
-
+		this.ctx.closePath();
+		this.ctx.fill();
 
 	}
 
@@ -773,6 +780,8 @@ ui.f.board = {
 
 ui.f.cube = {
 	render : function ( ) {
+
+		ui.f.board.ctx.clearRect(0, 0, cfg.f.width, cfg.f.height);
 
 		var color = "rgba(255,255,255,0.4)";
 
@@ -793,6 +802,17 @@ ui.f.cube = {
 
 
 		ui.f.board.line3d( 200,100,10, 200,100, 100, color );
+
+
+		var x = (ui.z.region.x1 / cfg.rowCount ) * 190 + 10;
+		var z = (ui.z.region.y1 / cfg.colCount ) * 90 + 10;
+
+		console.log( x, z );
+
+		ui.f.board.boxY( x, z, x + 20, z+20, 50, "rgba(105,250,50,0.7)");
+
+		ui.f.board.boxY( x, z, x + 20, z + 20, 100, "rgba(105,250,50,0.2)");
+
 
 	},
 
@@ -864,7 +884,27 @@ ui.f.traps = {
 
 ui.f.moves = {
 	add : function ( player, x1, y1, x2, y2 ) {
+
 		var color = cfg.colors[ player ] ;
+
+		/*
+		var a1 =  (x1 / cfg.rowCount ) * 190 + 10;
+		var b1 = (y1 / cfg.colCount ) * 90 + 10;
+		var a2 =  (x2 / cfg.rowCount ) * 190 + 10;
+		var b2 = (y2 / cfg.colCount ) * 90 + 10;
+
+		ui.f.board.line3d( 0, 0, b1, 0, 50, b1, "red" );
+		ui.f.board.line3d( 0, 50, 0, 0, 50, b1, "red" );
+
+
+		ui.f.board.line3d( 0, 0, b1, a1, 0, b1, "red" );
+		ui.f.board.line3d( a1, 0,0, a1, 0, b1, "red" );
+
+
+
+		ui.f.board.line3d( a1, 50, b1, a2, 50, b2, "red" );*/
+
+
 		var dist = cfg.f.dist;
 		window.requestAnimationFrame( function ( ) {
 		ui.f.board.line ( x1 * dist, y1 * dist, x2 * dist, y2 * dist, color );
