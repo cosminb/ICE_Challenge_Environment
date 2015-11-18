@@ -164,15 +164,13 @@ test.dt2 = {
 
 	run : function ( ) {
 
-	arena.init();
+		arena.init();
 		ui.z.main.init();
 		ui.z.main.render();
 
-		ui.f.main.init();
-		ui.f.main.render();
+		ui.clock.update();
 
-		console.log( "yt") ;
-		this.go();
+		ui.rank.update();
 	},
 
 }

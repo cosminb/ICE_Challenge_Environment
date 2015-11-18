@@ -1,21 +1,26 @@
 <style>
 
-    body {perspective: 1300px;background: #1F1F1F;overflow : hidden;}
+    body {background: #1F1F1F; perspective:1600px;}
 
-/*
-    svg {
 
-transform: matrix3d(0.7109, 0, -0.703279, 0,
-0, 1, 0, 0,
-0.703279, 0, 0.7109, 0,
-0, 0, 0, 1);
+	svg {     transform: rotateX(80deg) scaleY(0.6); }
 
-}
 
-*/
+	#place { perspective : 600px; perspective-origin: 50% 10%; width : 1000px; }
 
 </style>
 
+<body>
+
+
+
+
+
+
+
+
+<div id='place'>
+</div>
 
 <svg width="1400" height="1400"
 xmlns="http://www.w3.org/2000/svg" version="1.1"
@@ -200,8 +205,9 @@ ui.z.style = {
 ui.z.board = {
 
 	render : function ( ) {
-	    this.paper = Raphael(0, 0, 1000, 1000);
+	    this.paper = Raphael(90, -100, 1000, 1000);
 
+	    document.getElementById('place').appendChild(this.paper.canvas);
 	    console.log( this.paper );
 	},
 
@@ -729,12 +735,83 @@ ui.f.board = {
 
 		console.log( x1, y1, w, h, color  );
 	},
+
+	line3d : function ( x1, y1, z1, x2, y2, z2, color ) {
+
+		this.line( x1- z1*0.7+100, y1 + z1*0.3, x2 - z2*0.7+100, y2 + z2*0.3, color );
+	},
+	boxZ : function ( x1, y1, x2, y2, z, color ) {
+
+
+		ui.f.board.line3d( x1, y1, z, x2, y1, z,color);
+
+		ui.f.board.line3d( x2, y1, z, x2, y2, z,color);
+
+		ui.f.board.line3d(x2, y2, z, x1, y2, z, color);
+
+		ui.f.board.line3d( x1, y2, z, x1, y1, z, color);
+
+
+	},
+
+	boxY : function ( x1, z, x2, z, y, color ) {
+
+
+		ui.f.board.line3d( x1, y, z1, x2, y, z1,color);
+
+		ui.f.board.line3d( x2, y, z1, x2, y, z2,color);
+
+		ui.f.board.line3d(x2, y, z2, x1, y, z2, color);
+
+		ui.f.board.line3d( x1, y, z1, x1, y, z, color);
+
+
+	}
+
+}
+
+
+ui.f.cube = {
+	render : function ( ) {
+
+		var color = "rgba(255,255,255,0.4)";
+
+		ui.f.board.boxZ( 10,10,200,100,10, color  );
+
+
+		ui.f.board.boxZ( 10,10,200,100,100, color );
+
+
+		ui.f.board.line3d( 10,10,10, 10,10, 100, color );
+
+
+		ui.f.board.line3d( 10,100,10, 10,100, 100, color );
+
+
+
+		ui.f.board.line3d( 200,10,10, 200,10, 100, color );
+
+
+		ui.f.board.line3d( 200,100,10, 200,100, 100, color );
+
+	},
+
+}
+
+ui.f.viewport = {
+	render : function ( ) {
+		ui.f.board.box3d(
+
+		);
+	},
 }
 
 ui.f.main = {
 	render : function ( ) {
 		ui.f.board.render();
-		ui.f.gates.render();
+		//ui.f.gates.render();
+
+		ui.f.cube.render();
 	},
 	init : function ( ) {
 		cfg.f.dist   = 200 / (cfg.rowCount);

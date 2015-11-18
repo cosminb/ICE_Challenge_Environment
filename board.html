@@ -1,6 +1,6 @@
 <style>
 
-    body {perspective: 1300px;background: #1F1F1F;overflow : hidden;}
+    body {color : white; perspective: 1300px;background: #1F1F1F;overflow : hidden;}
 
 /*
     svg {
@@ -14,8 +14,19 @@ transform: matrix3d(0.7109, 0, -0.703279, 0,
 
 */
 
+#clock { position : absolute; left : 750px; top : 10px; font-size : 50px; color : #eee }
+
+
+#rang { position : absolute; left : 0px; top : 10px; }
+
+#next { position : absolute; left : 400px; top : 490px; }
+
 </style>
 
+
+<div id='clock'></div>
+<div id='rank'></div>
+<div id='next'>Next : pizza !!! <br />ANUNT ANUNT ANUNT ANUNTANUNT ANUNT ANUNT ANUNTANUNT ANUNT ANUNT ANUNTANUNT ANUNT ANUNT ANUNT</div>
 
 <svg width="1400" height="1400"
 xmlns="http://www.w3.org/2000/svg" version="1.1"
@@ -38,7 +49,7 @@ xmlns:xlink="http://www.w3.org/1999/xlink">
 <canvas id="f_canvas" width=200 height=200 style='position : absolute; left : 0px; top : 0px;'> </canvas>
 
 <script src="libs/raphael-min.js"></script>
-
+<script src="input.js"></script>
 
 <script>
 
@@ -52,8 +63,8 @@ var cfg = {
 
 	//cfg for zoomPreview
 	z : {
-		rowCount : 15,
-		colCount : 30,
+		rowCount : 10,
+		colCount : 20,
 
 		dist : 30,
 	},
@@ -81,7 +92,7 @@ var cfg = {
 	maxRow   : 500,
 	maxCol   : 1000,
 
-	animationStep : 100,
+	animationStep : 200,
 }
 
 var game = {
@@ -188,8 +199,8 @@ ui.z.draw = {
 
 ui.z.style = {
 
-	offsetX : 10,
-	offsetY : 250,
+	offsetX : 400,
+	offsetY : 150,
 
 	grid : {
 		'stroke': "rgb(200,200,200,0.7)",
@@ -260,6 +271,8 @@ ui.z.main =  {
 		ui.z.oldLines.render();
 
 		ui.z.gates.render();
+
+		ui.z.icons.render();
 	},
 
 	init : function ( ) {
@@ -291,6 +304,21 @@ ui.z.main =  {
 
 }
 
+ui.z.icons = {
+	render : function ( ) {
+		var html =
+					"<path d='M400,150L430 180L430 210L430 240L460 240L490 240L505 240' fill='none' stroke='#BADA55' stroke-width=3 filter='url(#theBlur)'></path>" +
+					"<image width='40' height='40' x=400 y=120 style='position:absolute;left:300px;top : 300px;' xlink:href='welcome.png'/>" +
+					"<image width='40' height='40' x = 500 y=200 xlink:href='pizza.png'/>" +
+					"<image width='40' height='40' x = 960 y=400 xlink:href='cup.png'/>" +
+					"<image width='40' height='40' x = 600 y=150 xlink:href='laptop.png'/>" +
+
+					"<image width='40' height='40' x = 650 y=300 xlink:href='FAQ.png'/>"
+
+
+		ui.z.board.paper.canvas.innerHTML+= html
+	}
+}
 
 ui.z.grid = {
 	render : function ( ) {
@@ -795,7 +823,61 @@ ui.f.moves = {
     },
 }
 
+
+ui.clock = {
+	start : new Date('November 17, 2015 20:00:00'),
+	end   : new Date('November 18, 2015 18:00:00'),
+
+	render : function ( ) {
+	},
+
+	update : function (  ){
+		var d = ui.clock.end - new Date();
+
+		var r = {};                                                                // result
+		var s = {                                                                  // structure
+			hour: 3600 * 1000,
+			minute: 6000,
+			second: 1000
+		};
+
+		Object.keys(s).forEach(function(key){
+			r[key] = Math.floor(d / s[key]);
+			d -= r[key] * s[key];
+		});
+
+
+		var html = r.hour + ":" + r.minute + ":" + r.second + ":" + (d %1000);
+
+		document.getElementById("clock").innerHTML = html;
+
+		requestAnimationFrame( ui.clock.update );
+
+	},
+}
+
+
+ui.rank = {
+	render : function ( ) {
+	},
+
+	update : function ( ) {
+		var html = "";
+		for ( var i in input.teams ) {
+			html += "<div class='team' ><span class='name' style=' color:"+input.teams[i].color+"'>" + input.teams[i].name + "</span>  " + input.teams[i].scor + "p <br /><span class='status'> "+input.teams[i].status+"</span></div>"
+		}
+
+		document.getElementById("rank").innerHTML = html;
+	},
+}
+
 </script>
 
+<style>
+	.team { color : white; margin-top : 30px; border-bottom : 1px solid #777; width : 300px; }
+	.team .name { display : inline-block; width : 200px;font-size:17px;font-weight:bold; }
+	.team .status { font-size : 13px; font-variant : small-caps }
+</style>
 
-<script src="test.ice.js"></script>
+
+<script src="test.board.js"></script>
