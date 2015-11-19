@@ -135,7 +135,7 @@ test.dt2 = {
 	},
 
 	color : 0,
-	start : [10,10],
+	start : [ 30, 15],
 	simulate: function() {
 		do {
 			var point = this.getRandomPoint(this.start);
@@ -145,7 +145,7 @@ test.dt2 = {
 
 		this.color = 1 - this.color
 
-		api.addMove( this.color, this.start[0], this.start[1], point[0], point[1] );
+		api.addNextMove( this.color + 1, point[1], point[0] );
 
 		//ui.z.main.addMove(this.color, this.start[0], this.start[1], point[0], point[1]);
 		//ui.f.main.addMove(this.color, this.start[0], this.start[1], point[0], point[1]);
@@ -194,9 +194,9 @@ test.dt2 = {
 	},
 
 	run : function ( ) {
-		api.startGame( 1000,3000, 10, 10 );
-
-		ui.z.region.setXY( 0, 0 );
+		api.startGame( 31,61, 15, 30 );
+		api.setGameInfo( "Yo N", "Marry", "F", 2 );
+		//ui.z.region.setXY( 0, 0 );
 /*
 		arena.init();
 		ui.z.main.init();
@@ -206,14 +206,13 @@ test.dt2 = {
 		ui.f.main.render();
 */
 
-
 		for ( var i  = 0; i < 1 ; i++ )
 			for ( var j = 0; j< 1; j++ )
 		ui.z.traps.addTrap( i*5, j*5 );
 
-		ui.z.elfs.addElf( 0, 1, 1 );
+		api.addDefender( 0, 1, 1 );
 
-		ui.z.elfs.addElf( 1, 10, 10 );
+		api.addDefender( 1, 10, 10 );
 
 		console.log( "yt") ;
 		this.go();
@@ -223,6 +222,6 @@ test.dt2 = {
 
 
 
-//test.dt2.run()
+test.dt2.run()
 
 
