@@ -4,7 +4,7 @@
 
 <style>
 
-    body {background: #1F1F1F;overflow : hidden;}
+    body {margin-left : 100px; background: #1F1F1F;overflow : hidden;}
 
 /*
     svg {
@@ -60,6 +60,8 @@ var cfg = {
 	//to be updated
 	rowCount : 0,
 	colCount : 0,
+	floorsCount : 0, 
+	
 	startX   : 0,
 	startY   : 0,
 
@@ -93,7 +95,6 @@ var game = {
 
 var api = {
 	startGame : function (rows, cols, startX, startY ) {
-
         this.startCompetition( rows, cols, startX, startY );
 
         this.init ( ) ;
@@ -138,6 +139,7 @@ var api = {
 
 	startCompetition : function ( rowCount, colCount, startX, startY ) {
 
+		
 		cfg.rowCount = rowCount;
         cfg.colCount = colCount;
 
@@ -152,6 +154,17 @@ var api = {
 
 
 	init : function ( ) {
+	
+			//generate random color 
+/*
+		var hue = Math.floor( Math.random() * 360 )  % 360
+		cfg.colors[0] = "hsla("+hue+", 64%, 59%,1 )";
+		
+		var hue = ( hue + 100 ) % 360 ;
+		cfg.colors[1] = "hsla("+hue+", 64%, 79%, 1)";
+//*/
+
+		console.log( cfg.colors );
 		arena.init();
 		ui.z.main.init();
 		ui.f.main.init();
@@ -831,6 +844,7 @@ ui.z.oldLines = {
 
 	],
 	render : function ( ) {
+		console.log( "o", cfg.colors );
 		var dist = cfg.z.dist;
 		var clip =  [ ui.z.style.offsetX, ui.z.style.offsetY,  cfg.z.colCount * dist , cfg.z.rowCount * dist ]
 
@@ -1179,6 +1193,10 @@ ui.hud.names = {
 	},
 	render : function (  ) {
 
+		document.getElementById( "team1" ).style.color = cfg.colors[ 0 ];
+		
+		document.getElementById( "team2" ).style.color = cfg.colors[ 1 ];
+		
 		document.getElementById( "team1" ).innerHTML = cfg.player1
 		document.getElementById( "team2" ).innerHTML = cfg.player2
 		
@@ -1230,24 +1248,25 @@ ui.hud.names = {
 
 .card { font-size : 25px; transition : all 0.2s; height : 200px; width:150px;line-height : 200px; vertical-align:middle;}
 
-#board { left : 580px;position : absolute; overflow : hidden; width : 300px; height : 200px; top : 20px;}
+#board { display : none; left : 580px;position : absolute; overflow : hidden; width : 300px; height : 200px; top : 20px;}
 
+#board.start { display : block }
 </style>
 
 <div id='board'>
 	<div id='left' class='deck'>
 		<div class='card' id='c1' style='text-align:right'>Break&nbsp;</div>
 
-		<div class='card' id='level' style='text-align:center'>Finala</div>
+		<div class='card' id='level' style='text-align:center'></div>
 
-		<div class='card' id='team1' style='text-align:left'>Echipa</div>
+		<div class='card' id='team1' style='text-align:left'></div>
 
 	</div>
 	<div id='right' class='deck'>
 
-		<div class='card' id='team2' style='text-align:right'>Echipa 2</div>
+		<div class='card' id='team2' style='text-align:right'></div>
 
-		<div class='card' id='round' style='text-align:center'>Dimensiunea</div>
+		<div class='card' id='round' style='text-align:center'></div>
 
 		<div class='card' id='c6' >the ICE</div>
 	</div>

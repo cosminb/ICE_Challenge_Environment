@@ -1,51 +1,49 @@
-
-<svg id='defs'>
-	<defs>
-	  <filter id="theBlur3">
-		<feGaussianBlur in="SourceGraphic" stdDeviation="10"  result="blur2"/>
-				<feMerge>
-				<feMergeNode in="blur2" />
-				<feMergeNode in="SourceGraphic" />
-			</feMerge>
-	  </filter>
-	</defs>
-</svg>
 <style>
-#defs { display : none; }
- 
-    body {color : white; perspective: 1300px;background: #1F1F1F;overflow : hidden;}
 
-/*
-    svg {
+    body {background: #1F1F1F; perspective:1600px;}
 
-transform: matrix3d(0.7109, 0, -0.703279, 0,
-0, 1, 0, 0,
-0.703279, 0, 0.7109, 0,
-0, 0, 0, 1);
 
-}
+	svg {     transform: rotateX(80deg) scaleY(0.6); }
 
-*/
 
-#clock {    -webkit-filter: url(#theBlur3);
- color : #BADA55; position : absolute; left : 750px; top : 10px; font-size : 50px; }
-
-#rang { position : absolute; left : 0px; top : 10px; }
-
-#next { position : absolute; left : 400px; top : 490px; }
+	#place { perspective : 600px; perspective-origin: 50% 10%; width : 1000px; }
 
 </style>
 
+<body>
 
-<div id='clock'></div>
-<div id='rank'></div>
-<div id='next'></div>
 
+
+
+
+
+
+
+<div id='place'>
+</div>
+
+<svg width="1400" height="1400"
+xmlns="http://www.w3.org/2000/svg" version="1.1"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+
+
+<defs>
+  <filter id="theBlur">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="10"  result="blur2"/>
+            <feMerge>
+            <feMergeNode in="blur2" />
+            <feMergeNode in="SourceGraphic" />
+        </feMerge>
+  </filter>
+
+</defs>
+
+</svg>
 
 <canvas id="f_canvas" width=200 height=200 style='position : absolute; left : 0px; top : 0px;'> </canvas>
 
 <script src="libs/raphael-min.js"></script>
-<script src="input.js"></script>
+
 
 <script>
 
@@ -59,8 +57,8 @@ var cfg = {
 
 	//cfg for zoomPreview
 	z : {
-		rowCount : 10,
-		colCount : 20,
+		rowCount : 15,
+		colCount : 30,
 
 		dist : 30,
 	},
@@ -88,7 +86,7 @@ var cfg = {
 	maxRow   : 500,
 	maxCol   : 1000,
 
-	animationStep : 200,
+	animationStep : 100,
 }
 
 var game = {
@@ -195,8 +193,8 @@ ui.z.draw = {
 
 ui.z.style = {
 
-	offsetX : 400,
-	offsetY : 150,
+	offsetX : 10,
+	offsetY : 250,
 
 	grid : {
 		'stroke': "rgb(200,200,200,0.7)",
@@ -207,8 +205,9 @@ ui.z.style = {
 ui.z.board = {
 
 	render : function ( ) {
-	    this.paper = Raphael(0, 0, 1000, 1000);
+	    this.paper = Raphael(90, -100, 1000, 1000);
 
+	    document.getElementById('place').appendChild(this.paper.canvas);
 	    console.log( this.paper );
 	},
 
@@ -267,8 +266,6 @@ ui.z.main =  {
 		ui.z.oldLines.render();
 
 		ui.z.gates.render();
-
-		ui.z.icons.render();
 	},
 
 	init : function ( ) {
@@ -281,6 +278,7 @@ ui.z.main =  {
 
 			var mustUpdate = ui.z.region.update( x1, y1, x2, y2 );
 			if ( mustUpdate ) {
+				ui.f.cube.render();
 				window.requestAnimationFrame( this.refresh );
 			}
 		}
@@ -300,34 +298,6 @@ ui.z.main =  {
 
 }
 
-ui.z.icons = {
-	render : function ( ) {
-		var html =
-					"<path d='" +this.renderPath(  ) + "' fill='none' stroke='#BADA55' stroke-width=3 filter='url(#theBlur)'></path>"
-					
-
-		ui.z.board.paper.canvas.innerHTML+= html
-	},
-	
-	renderPath : function  ( ) {
-		var path = [];
-		
-		var offsetX = 400;
-		var offsetY = 150;
-		
-		
-		var pointX = offsetX;
-		var pointY = offsetY;
-		
-		for ( var i in input.milestones ) {
-			path.push( "M", input.milestones[i].posX * 30 + offsetX , input.milestones[i].posY * 30 + offsetY, "L", pointX, pointY );
-			pointX = input.milestones[i].posX * 30 + offsetX ;
-			pointY = input.milestones[i].posY * 30 + offsetY ;
-		}
-		
-		return path.join ( " " );
-	},
-}
 
 ui.z.grid = {
 	render : function ( ) {
@@ -749,6 +719,7 @@ ui.f.board = {
 		this.ctx.stroke();
 	},
 
+
 	rect : function ( x1, y1, w, h, color ) {
 		this.ctx.lineWidth = 1;
 
@@ -766,12 +737,101 @@ ui.f.board = {
 
 		console.log( x1, y1, w, h, color  );
 	},
+
+	line3d : function ( x1, y1, z1, x2, y2, z2, color ) {
+
+		this.line( x1- z1*0.7+100, y1 + z1*0.3, x2 - z2*0.7+100, y2 + z2*0.3, color );
+	},
+	boxZ : function ( x1, y1, x2, y2, z, color ) {
+
+
+		ui.f.board.line3d( x1, y1, z, x2, y1, z,color);
+
+		ui.f.board.line3d( x2, y1, z, x2, y2, z,color);
+
+		ui.f.board.line3d(x2, y2, z, x1, y2, z, color);
+
+		ui.f.board.line3d( x1, y2, z, x1, y1, z, color);
+
+
+	},
+
+	boxY : function ( x1, z1, x2, z2, y, color ) {
+
+		this.ctx.lineWidth = 1;
+
+		this.ctx.strokeStyle = color;
+
+		this.ctx.fillStyle = color;
+
+		this.ctx.beginPath();
+		this.ctx.moveTo( x1- z1*0.7+100, y + z1*0.3 );
+		this.ctx.lineTo( x1- z2*0.7+100, y + z2*0.3 );
+		this.ctx.lineTo( x2- z2*0.7+100, y + z2*0.3 );
+		this.ctx.lineTo( x2- z1*0.7+100, y + z1*0.3 );
+
+		this.ctx.closePath();
+		this.ctx.fill();
+
+	}
+
+}
+
+
+ui.f.cube = {
+	render : function ( ) {
+
+		ui.f.board.ctx.clearRect(0, 0, cfg.f.width, cfg.f.height);
+
+		var color = "rgba(255,255,255,0.4)";
+
+		ui.f.board.boxZ( 10,10,200,100,10, color  );
+
+
+		ui.f.board.boxZ( 10,10,200,100,100, color );
+
+
+		ui.f.board.line3d( 10,10,10, 10,10, 100, color );
+
+
+		ui.f.board.line3d( 10,100,10, 10,100, 100, color );
+
+
+
+		ui.f.board.line3d( 200,10,10, 200,10, 100, color );
+
+
+		ui.f.board.line3d( 200,100,10, 200,100, 100, color );
+
+
+		var x = (ui.z.region.x1 / cfg.rowCount ) * 190 + 10;
+		var z = (ui.z.region.y1 / cfg.colCount ) * 90 + 10;
+
+		console.log( x, z );
+
+		ui.f.board.boxY( x, z, x + 20, z+20, 50, "rgba(105,250,50,0.7)");
+
+		ui.f.board.boxY( x, z, x + 20, z + 20, 100, "rgba(105,250,50,0.2)");
+
+
+	},
+
+}
+
+ui.f.viewport = {
+	render : function ( ) {
+		ui.f.board.box3d(
+
+		);
+	},
 }
 
 ui.f.main = {
 	render : function ( ) {
 		ui.f.board.render();
-		ui.f.gates.render();
+		//ui.f.gates.render();
+
+		ui.f.cube.render();
 	},
 	init : function ( ) {
 		cfg.f.dist   = 200 / (cfg.rowCount);
@@ -824,7 +884,27 @@ ui.f.traps = {
 
 ui.f.moves = {
 	add : function ( player, x1, y1, x2, y2 ) {
+
 		var color = cfg.colors[ player ] ;
+
+		/*
+		var a1 =  (x1 / cfg.rowCount ) * 190 + 10;
+		var b1 = (y1 / cfg.colCount ) * 90 + 10;
+		var a2 =  (x2 / cfg.rowCount ) * 190 + 10;
+		var b2 = (y2 / cfg.colCount ) * 90 + 10;
+
+		ui.f.board.line3d( 0, 0, b1, 0, 50, b1, "red" );
+		ui.f.board.line3d( 0, 50, 0, 0, 50, b1, "red" );
+
+
+		ui.f.board.line3d( 0, 0, b1, a1, 0, b1, "red" );
+		ui.f.board.line3d( a1, 0,0, a1, 0, b1, "red" );
+
+
+
+		ui.f.board.line3d( a1, 50, b1, a2, 50, b2, "red" );*/
+
+
 		var dist = cfg.f.dist;
 		window.requestAnimationFrame( function ( ) {
 		ui.f.board.line ( x1 * dist, y1 * dist, x2 * dist, y2 * dist, color );
@@ -832,82 +912,7 @@ ui.f.moves = {
     },
 }
 
-
-ui.clock = {
-	start : new Date('November 19, 2015 16:00:00'),
-	end   : new Date('November 20, 2015 18:00:00'),
-
-	render : function ( ) {
-	},
-
-	update : function (  ){
-		var d = ui.clock.end - new Date();
-
-		var r = {};  
-		r["miliseconds"] = d % 1000;
-		
-		d = ( d - r.miliseconds ) / 1000;
-		
-		
-		
-		var s = {                                                                  // structure
-			hour: 3600 ,
-			minute: 60 ,
-			second: 1
-		};
-
-		Object.keys(s).forEach(function(key){
-			r[key] = Math.floor(d / s[key]);
-			if ( r[key] < 10 ) r[key] = "0" + r[key];
-			d -= r[key] * s[key];
-		});
-
-
-		var html = r.hour + ":" + r.minute + ":" + r.second + "." + r.miliseconds;
-
-		document.getElementById("clock").innerHTML = html;
-
-		requestAnimationFrame( ui.clock.update );
-
-	},
-}
-
-
-ui.rank = {
-	render : function ( ) {
-	},
-
-	computeScore : function ( ) {
-		for ( var i in input.teams ) {
-			input.teams[i].score = 0;
-			
-			for ( var j in input.teams[ i ].points ) {
-				input.teams[i].score+= input.teams[ i ].points[j].score
-			}
-		}
-	},
-	update : function ( ) {
-		var html = "";
-		this.computeScore();
-		for ( var i in input.teams ) {
-			html += "<div class='team' >" +
-					"<span class='name' style=' color:"+input.teams[i].color+"'>"+ input.teams[i].name + "</span>  " +
-					"<span class='score'>"+input.teams[i].score + "pts</span>" + 
-					"</div>"
-		}
-
-		document.getElementById("rank").innerHTML = html;
-	},
-}
-
 </script>
 
-<style>
-	.team { color : white; margin-top : 3px; border-bottom : 1px solid #777; width : 300px; }
-	.team .name { width:200px; display : inline-block; font-size:26px;font-weight:bold; }
-	.team .status { font-size : 26px; font-variant : small-caps }
-	.team .score { font-size : 26px; font-variant : small-caps }
-</style>
 
-
-<script src="test.board.js"></script>
+<script src="test.dice.js"></script>
