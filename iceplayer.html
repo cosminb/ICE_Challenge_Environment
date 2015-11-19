@@ -1,3 +1,26 @@
+
+
+
+<div id='board'>
+<div id='left' class='deck'>
+	<div class='card' id='c1' style='text-align:right'>Get&nbsp;</div>
+
+	<div class='card' id='c2' style='text-align:center'>Finala</div>
+
+	<div class='card' id='c3' style='text-align:left'>Echipa</div>
+
+</div>
+<div id='right' class='deck'>
+
+	<div class='card' id='c4' style='text-align:right'>Echipa 2</div>
+
+	<div class='card' id='c5' style='text-align:center'>Dimensiunea</div>
+
+	<div class='card' id='c6' >ready</div>
+</div>
+
+</div>
+
 <style>
 
     body {perspective: 1300px;background: #1F1F1F;overflow : hidden;}
@@ -1109,7 +1132,55 @@ ui.f.moves = {
     },
 }
 
+
+ui.board = {}
+ui.board.x;
+
 </script>
 
 
+
 <script src="test.ice.js"></script>
+
+
+<style>
+.deck { position : absolute; height : 200px;width : 100px; float : left; color : white}
+
+
+@keyframes left_animation {
+	0% { top : 0px;}
+	23% { top : 0px;}
+	50% {top : -200px;}
+	55% {top : -200px;}
+	100% {top : -400px;}
+}
+
+#left {
+	animation: left_animation 5.7s cubic-bezier(0.680, -0.550, 0.265, 1.950);
+}
+
+
+#left {top : -400; left : 0px; }
+
+@keyframes right_animation {
+	0% { top : -400px;}
+	23% { top : -400px; }
+	50% {top : -200px;}
+	55% {top : -200px;}
+	100% {top : 0px;  }
+}
+
+#right {
+	animation: right_animation 5.7s cubic-bezier(0.680, -0.550, 0.265, 1.950);
+}
+
+
+#right {top : 0px; left : 150px; }
+
+
+.card { font-size : 25px; transition : all 0.2s; height : 200px; width:150px;line-height : 200px; vertical-align:middle;}
+
+#board { left : 620px;position : absolute; overflow : hidden; width : 300px; height : 200px; }
+
+</style>
+<div>
