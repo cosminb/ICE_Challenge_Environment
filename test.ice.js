@@ -206,11 +206,10 @@ test.dt2 = {
 		ui.f.main.render();
 */
 
-		ui.z.objMatrix.init();
-		for ( var i  = 0; i < 10 ; i++ )
-			for ( var j = 0; j< 10; j++ )
+
+		for ( var i  = 0; i < 1 ; i++ )
+			for ( var j = 0; j< 1; j++ )
 		ui.z.traps.addTrap( i*5, j*5 );
-		ui.z.objMatrix.refresh();
 
 		ui.z.elfs.addElf( 0, 1, 1 );
 
@@ -224,6 +223,6 @@ test.dt2 = {
 
 
 
-test.dt2.run()
+//test.dt2.run()
 
 

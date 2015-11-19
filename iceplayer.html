@@ -94,7 +94,7 @@ var cfg = {
 	maxRow   : 500,
 	maxCol   : 1000,
 
-	animationStep : 100,
+	animationStep : 150,
 }
 
 var game = {
@@ -111,7 +111,30 @@ var game = {
 
 
 var api = {
+	startGame : function (rows, cols, startX, startY ) {
 
+        this.startCompetition( rows, cols, startX, startY );
+
+        this.init ( ) ;
+		
+		this.currentX = startX;
+		this.currentY = startY;
+	},
+	
+	addNextMove : function ( player, x, y ) {
+		this.addLine( parseInt(player)-1, this.currentX, this.currentY, x, y );
+		this.currentX = x;
+		this.currentY = y;
+	},
+	
+	addTrap : function ( x, y ) {
+		ui.z.traps.addTrap( x, y );
+	},
+	
+	addDefender : function  ( ) {
+	
+	},
+	
 	render : function ( ) {
 	},
 
@@ -128,12 +151,7 @@ var api = {
 
 	},
 
-	startGame : function (rows, cols, startX, startY ) {
 
-        this.startCompetition( rows, cols, startX, startY );
-
-        this.init ( ) ;
-	},
 
 	init : function ( ) {
 		arena.init();
@@ -142,16 +160,17 @@ var api = {
 
 		ui.f.main.render();
 		ui.z.main.render();
+		
+		ui.z.objMatrix.init();
+		ui.z.objMatrix.refresh();
 
-	},
 
-	addNextMove : function ( ) {
 	},
 
 	addTrap : function ( ) {
 	},
 
-	addMove : function (color, x1, y1, x2, y2  ) {
+	addLine : function (color, x1, y1, x2, y2  ) {
 
 		ui.z.main.addMove(color, x1, y1, x2, y2);
 		ui.f.main.addMove(color, x1, y1, x2, y2);
@@ -248,7 +267,7 @@ ui.z.board = {
 			</style>
 			<defs>
 				<filter id="theBlur"  width = "350%" height = "350%" filterUnits='objectBoundingBox'>
-					<feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur2"/>
+					<feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur2"/>
 					<feMerge>
 						<feMergeNode in="blur2" />
 						<feMergeNode in="SourceGraphic" />
@@ -363,9 +382,12 @@ ui.z.main =  {
 		ui.z.moves.clear();
 		ui.z.gates.refresh();
 
-		ui.z.objMatrix.refresh();
 
-		ui.z.elfs.refresh();
+		window.requestAnimationFrame( function ( ) {
+				ui.z.objMatrix.refresh();
+
+			ui.z.elfs.refresh();
+		});
 	},
 
 }
@@ -691,8 +713,6 @@ ui.z.elfs = {
 		}
 
 		item.el.attr(item.at)
-
-		console.log( item, item.at );
 
 	},
 
