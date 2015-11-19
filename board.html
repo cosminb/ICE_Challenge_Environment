@@ -1,5 +1,18 @@
-<style>
 
+<svg id='defs'>
+	<defs>
+	  <filter id="theBlur3">
+		<feGaussianBlur in="SourceGraphic" stdDeviation="10"  result="blur2"/>
+				<feMerge>
+				<feMergeNode in="blur2" />
+				<feMergeNode in="SourceGraphic" />
+			</feMerge>
+	  </filter>
+	</defs>
+</svg>
+<style>
+#defs { display : none; }
+ 
     body {color : white; perspective: 1300px;background: #1F1F1F;overflow : hidden;}
 
 /*
@@ -14,8 +27,8 @@ transform: matrix3d(0.7109, 0, -0.703279, 0,
 
 */
 
-#clock { position : absolute; left : 750px; top : 10px; font-size : 50px; color : #eee }
-
+#clock {    -webkit-filter: url(#theBlur3);
+ color : #BADA55; position : absolute; left : 750px; top : 10px; font-size : 50px; }
 
 #rang { position : absolute; left : 0px; top : 10px; }
 
@@ -26,25 +39,8 @@ transform: matrix3d(0.7109, 0, -0.703279, 0,
 
 <div id='clock'></div>
 <div id='rank'></div>
-<div id='next'>Next : pizza !!! <br />ANUNT ANUNT ANUNT ANUNTANUNT ANUNT ANUNT ANUNTANUNT ANUNT ANUNT ANUNTANUNT ANUNT ANUNT ANUNT</div>
+<div id='next'></div>
 
-<svg width="1400" height="1400"
-xmlns="http://www.w3.org/2000/svg" version="1.1"
-xmlns:xlink="http://www.w3.org/1999/xlink">
-
-
-<defs>
-  <filter id="theBlur">
-    <feGaussianBlur in="SourceGraphic" stdDeviation="10"  result="blur2"/>
-            <feMerge>
-            <feMergeNode in="blur2" />
-            <feMergeNode in="SourceGraphic" />
-        </feMerge>
-  </filter>
-
-</defs>
-
-</svg>
 
 <canvas id="f_canvas" width=200 height=200 style='position : absolute; left : 0px; top : 0px;'> </canvas>
 
@@ -307,17 +303,30 @@ ui.z.main =  {
 ui.z.icons = {
 	render : function ( ) {
 		var html =
-					"<path d='M400,150L430 180L430 210L430 240L460 240L490 240L505 240' fill='none' stroke='#BADA55' stroke-width=3 filter='url(#theBlur)'></path>" +
-					"<image width='40' height='40' x=400 y=120 style='position:absolute;left:300px;top : 300px;' xlink:href='welcome.png'/>" +
-					"<image width='40' height='40' x = 500 y=200 xlink:href='pizza.png'/>" +
-					"<image width='40' height='40' x = 960 y=400 xlink:href='cup.png'/>" +
-					"<image width='40' height='40' x = 600 y=150 xlink:href='laptop.png'/>" +
-
-					"<image width='40' height='40' x = 650 y=300 xlink:href='FAQ.png'/>"
-
+					"<path d='" +this.renderPath(  ) + "' fill='none' stroke='#BADA55' stroke-width=3 filter='url(#theBlur)'></path>"
+					
 
 		ui.z.board.paper.canvas.innerHTML+= html
-	}
+	},
+	
+	renderPath : function  ( ) {
+		var path = [];
+		
+		var offsetX = 400;
+		var offsetY = 150;
+		
+		
+		var pointX = offsetX;
+		var pointY = offsetY;
+		
+		for ( var i in input.milestones ) {
+			path.push( "M", input.milestones[i].posX * 30 + offsetX , input.milestones[i].posY * 30 + offsetY, "L", pointX, pointY );
+			pointX = input.milestones[i].posX * 30 + offsetX ;
+			pointY = input.milestones[i].posY * 30 + offsetY ;
+		}
+		
+		return path.join ( " " );
+	},
 }
 
 ui.z.grid = {
@@ -825,8 +834,8 @@ ui.f.moves = {
 
 
 ui.clock = {
-	start : new Date('November 17, 2015 20:00:00'),
-	end   : new Date('November 18, 2015 18:00:00'),
+	start : new Date('November 19, 2015 16:00:00'),
+	end   : new Date('November 20, 2015 18:00:00'),
 
 	render : function ( ) {
 	},
@@ -834,20 +843,27 @@ ui.clock = {
 	update : function (  ){
 		var d = ui.clock.end - new Date();
 
-		var r = {};                                                                // result
+		var r = {};  
+		r["miliseconds"] = d % 1000;
+		
+		d = ( d - r.miliseconds ) / 1000;
+		
+		
+		
 		var s = {                                                                  // structure
-			hour: 3600 * 1000,
-			minute: 6000,
-			second: 1000
+			hour: 3600 ,
+			minute: 60 ,
+			second: 1
 		};
 
 		Object.keys(s).forEach(function(key){
 			r[key] = Math.floor(d / s[key]);
+			if ( r[key] < 10 ) r[key] = "0" + r[key];
 			d -= r[key] * s[key];
 		});
 
 
-		var html = r.hour + ":" + r.minute + ":" + r.second + ":" + (d %1000);
+		var html = r.hour + ":" + r.minute + ":" + r.second + "." + r.miliseconds;
 
 		document.getElementById("clock").innerHTML = html;
 
@@ -861,13 +877,23 @@ ui.rank = {
 	render : function ( ) {
 	},
 
+	computeScore : function ( ) {
+		for ( var i in input.teams ) {
+			input.teams[i].score = 0;
+			
+			for ( var j in input.teams[ i ].points ) {
+				input.teams[i].score+= input.teams[ i ].points[j].score
+			}
+		}
+	},
 	update : function ( ) {
 		var html = "";
+		this.computeScore();
 		for ( var i in input.teams ) {
-			html += "<div class='team' ><span class='name' style=' color:"+input.teams[i].color+"'>"
-						+ input.teams[i].name + "</span>  " +
-						input.teams[i].scor + "p <br /><span class='status'> "+
-						input.teams[i].status+"</span></div>"
+			html += "<div class='team' >" +
+					"<span class='name' style=' color:"+input.teams[i].color+"'>"+ input.teams[i].name + "</span>  " +
+					"<span class='score'>"+input.teams[i].score + "pts</span>" + 
+					"</div>"
 		}
 
 		document.getElementById("rank").innerHTML = html;
@@ -877,9 +903,10 @@ ui.rank = {
 </script>
 
 <style>
-	.team { color : white; margin-top : 30px; border-bottom : 1px solid #777; width : 300px; }
-	.team .name { display : inline-block; width : 200px;font-size:17px;font-weight:bold; }
-	.team .status { font-size : 13px; font-variant : small-caps }
+	.team { color : white; margin-top : 3px; border-bottom : 1px solid #777; width : 300px; }
+	.team .name { width:200px; display : inline-block; font-size:26px;font-weight:bold; }
+	.team .status { font-size : 26px; font-variant : small-caps }
+	.team .score { font-size : 26px; font-variant : small-caps }
 </style>
 
 

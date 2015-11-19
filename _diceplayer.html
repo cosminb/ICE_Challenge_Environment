@@ -107,7 +107,7 @@ var api = {
 	render : function ( ) {
 	},
 
-	startCompetition : function ( rowCount, colCount, startX, startY ) {
+	startCompetition : function ( rows, cols, startX, startY ) {
 
 		cfg.rowCount = rowCount;
         cfg.colCount = colCount;
@@ -118,7 +118,7 @@ var api = {
 
 
         arena.init();
-//        zPreview.init();
+        zPreview.init();
 
 	},
 
@@ -133,14 +133,6 @@ var api = {
 
 	addTrap : function ( ) {
 	},
-
-
-	addMove : function (color, x1, y1, x2, y2  ) {
-
-		ui.z.main.addMove(color, x1, y1, x2, y2);
-		ui.f.main.addMove(color, x1, y1, x2, y2);
-
-	}
 
 }
 
@@ -923,4 +915,4 @@ ui.f.moves = {
 </script>
 
 
-<script src="test.ice.js"></script>
+<script src="test.dice.js"></script>

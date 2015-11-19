@@ -1,29 +1,10 @@
 
 
 
-<div id='board'>
-<div id='left' class='deck'>
-	<div class='card' id='c1' style='text-align:right'>Get&nbsp;</div>
-
-	<div class='card' id='c2' style='text-align:center'>Finala</div>
-
-	<div class='card' id='c3' style='text-align:left'>Echipa</div>
-
-</div>
-<div id='right' class='deck'>
-
-	<div class='card' id='c4' style='text-align:right'>Echipa 2</div>
-
-	<div class='card' id='c5' style='text-align:center'>Dimensiunea</div>
-
-	<div class='card' id='c6' >ready</div>
-</div>
-
-</div>
 
 <style>
 
-    body {perspective: 1300px;background: #1F1F1F;overflow : hidden;}
+    body {margin-left : 100px; background: #1F1F1F;overflow : hidden;}
 
 /*
     svg {
@@ -79,6 +60,8 @@ var cfg = {
 	//to be updated
 	rowCount : 0,
 	colCount : 0,
+	floorsCount : 0, 
+	
 	startX   : 0,
 	startY   : 0,
 
@@ -111,12 +94,52 @@ var game = {
 
 
 var api = {
+	startGame : function (rows, cols, startX, startY ) {
+        this.startCompetition( rows, cols, startX, startY );
 
+        this.init ( ) ;
+		
+		this.currentX = startX;
+		this.currentY = startY;
+	},
+	
+	addNextMove : function ( player, x, y ) {
+		this.addLine( parseInt(player)-1, this.currentX, this.currentY, x, y );
+		this.currentX = x;
+		this.currentY = y;
+	},
+	
+	
+	addNextMoveL2 : function ( player, x, y, xd1, yd1, xd2, yd2 ) {
+		
+		player = parseInt(player)-1
+		this.addLine( player, this.currentX, this.currentY, x, y );
+		this.currentX = x;
+		this.currentY = y;
+		
+		this.moveDefender( player , xd1, yd1 );
+		this.moveDefender( player + 1, xd2, yd2 );
+	},
+	
+	addTrap : function ( x, y ) {
+		ui.z.traps.addTrap( x, y );
+	},
+	
+	addDefender : function  ( index, x, y ) {
+		ui.z.elfs.addElf( index, x, y );
+	},
+	
+	moveDefender : function ( index, x, y) {
+		ui.z.elfs.moveElf( index, x, y );
+
+	},
+	
 	render : function ( ) {
 	},
 
 	startCompetition : function ( rowCount, colCount, startX, startY ) {
 
+		
 		cfg.rowCount = rowCount;
         cfg.colCount = colCount;
 
@@ -128,35 +151,52 @@ var api = {
 
 	},
 
-	startGame : function (rows, cols, startX, startY ) {
 
-        this.startCompetition( rows, cols, startX, startY );
-
-        this.init ( ) ;
-	},
 
 	init : function ( ) {
+	
+			//generate random color 
+/*
+		var hue = Math.floor( Math.random() * 360 )  % 360
+		cfg.colors[0] = "hsla("+hue+", 64%, 59%,1 )";
+		
+		var hue = ( hue + 100 ) % 360 ;
+		cfg.colors[1] = "hsla("+hue+", 64%, 79%, 1)";
+//*/
+
+		console.log( cfg.colors );
 		arena.init();
 		ui.z.main.init();
 		ui.f.main.init();
 
 		ui.f.main.render();
 		ui.z.main.render();
+		
+		ui.z.objMatrix.init();
+		ui.z.objMatrix.refresh();
+
 
 	},
 
-	addNextMove : function ( ) {
-	},
 
-	addTrap : function ( ) {
-	},
-
-	addMove : function (color, x1, y1, x2, y2  ) {
+	addLine : function (color, x1, y1, x2, y2  ) {
 
 		ui.z.main.addMove(color, x1, y1, x2, y2);
 		ui.f.main.addMove(color, x1, y1, x2, y2);
 
-	}
+	},
+	
+	
+	setGameInfo : function ( player1, player2, battle_phase, battle_size  ) {
+		cfg.player1 = player1;
+		cfg.player2 = player2;
+		
+		cfg.battle_phase = battle_phase;
+		cfg.battle_size   = battle_size;
+		
+		ui.hud.names.render();
+		ui.hud.names.refresh();
+	},
 
 }
 
@@ -248,7 +288,7 @@ ui.z.board = {
 			</style>
 			<defs>
 				<filter id="theBlur"  width = "350%" height = "350%" filterUnits='objectBoundingBox'>
-					<feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur2"/>
+					<feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur2"/>
 					<feMerge>
 						<feMergeNode in="blur2" />
 						<feMergeNode in="SourceGraphic" />
@@ -363,9 +403,12 @@ ui.z.main =  {
 		ui.z.moves.clear();
 		ui.z.gates.refresh();
 
-		ui.z.objMatrix.refresh();
 
-		ui.z.elfs.refresh();
+		window.requestAnimationFrame( function ( ) {
+				ui.z.objMatrix.refresh();
+
+			ui.z.elfs.refresh();
+		});
 	},
 
 }
@@ -465,13 +508,13 @@ ui.z.gates = {
 			var gateHeight = (cfg.gateEnd - cfg.gateStart) * dist;
 			var gateWidth = dist/2;
 			var gateStart = cfg.gateStart * dist
-			var middleX = cfg.colCount / 2 * dist;
+			var middleX = Math.floor ( (cfg.colCount - 1 )  / 2 * dist );
 
 			//middle
 			var container = document.getElementById("gates");
 
-			var el = ui.z.board.fillRect (  middleX,  0, 5, cfg.rowCount * dist, "rgba(255, 255, 255, 0.7 )"  );
-			this.obj.middle = new LineItem( el, cfg.colCount / 2, 0, cfg.rowCount, 5 );
+			var el = ui.z.board.fillRect  (  middleX,  0, 5, cfg.rowCount * dist, "rgba(255, 255, 255, 0.7 )"  );
+			this.obj.middle = new LineItem( el, Math.floor( (cfg.colCount -1 )/ 2 ), 0, cfg.rowCount, 5 );
 
 			//hack for clip-path to be relative to arena. Another reason to go SVG
 			container.appendChild( el.node );
@@ -692,8 +735,6 @@ ui.z.elfs = {
 
 		item.el.attr(item.at)
 
-		console.log( item, item.at );
-
 	},
 
 	refresh : function ( ) {
@@ -803,6 +844,7 @@ ui.z.oldLines = {
 
 	],
 	render : function ( ) {
+		console.log( "o", cfg.colors );
 		var dist = cfg.z.dist;
 		var clip =  [ ui.z.style.offsetX, ui.z.style.offsetY,  cfg.z.colCount * dist , cfg.z.rowCount * dist ]
 
@@ -1133,14 +1175,40 @@ ui.f.moves = {
 }
 
 
-ui.board = {}
-ui.board.x;
+ui.hud = {}
+ui.hud.names = {
+	
+	refresh : function  ( ) {
+		document.getElementById( "board" ).className = "start";
+	},
+	
+	labels : {
+		"S" : "Semifinals",
+		"F" : "Finals",
+		"Q" : "Whatever",
+		
+		1 : "Easy",
+		2 : "Medium",
+		3 : "Hard"
+	},
+	render : function (  ) {
+
+		document.getElementById( "team1" ).style.color = cfg.colors[ 0 ];
+		
+		document.getElementById( "team2" ).style.color = cfg.colors[ 1 ];
+		
+		document.getElementById( "team1" ).innerHTML = cfg.player1
+		document.getElementById( "team2" ).innerHTML = cfg.player2
+		
+		
+		document.getElementById( "level" ).innerHTML = this.labels[ cfg.battle_phase ]		
+		document.getElementById( "round" ).innerHTML = this.labels[ cfg.battle_size  ] 
+	}
+}
 
 </script>
 
 
-
-<script src="test.ice.js"></script>
 
 
 <style>
@@ -1155,12 +1223,12 @@ ui.board.x;
 	100% {top : -400px;}
 }
 
-#left {
+#board.start #left {
 	animation: left_animation 5.7s cubic-bezier(0.680, -0.550, 0.265, 1.950);
 }
 
 
-#left {top : -400; left : 0px; }
+#board.start #left {top : -400; left : 0px; }
 
 @keyframes right_animation {
 	0% { top : -400px;}
@@ -1170,7 +1238,7 @@ ui.board.x;
 	100% {top : 0px;  }
 }
 
-#right {
+#board.start #right {
 	animation: right_animation 5.7s cubic-bezier(0.680, -0.550, 0.265, 1.950);
 }
 
@@ -1180,7 +1248,32 @@ ui.board.x;
 
 .card { font-size : 25px; transition : all 0.2s; height : 200px; width:150px;line-height : 200px; vertical-align:middle;}
 
-#board { left : 620px;position : absolute; overflow : hidden; width : 300px; height : 200px; }
+#board { display : none; left : 580px;position : absolute; overflow : hidden; width : 300px; height : 200px; top : 20px;}
 
+#board.start { display : block }
 </style>
-<div>
+
+<div id='board'>
+	<div id='left' class='deck'>
+		<div class='card' id='c1' style='text-align:right'>Break&nbsp;</div>
+
+		<div class='card' id='level' style='text-align:center'></div>
+
+		<div class='card' id='team1' style='text-align:left'></div>
+
+	</div>
+	<div id='right' class='deck'>
+
+		<div class='card' id='team2' style='text-align:right'></div>
+
+		<div class='card' id='round' style='text-align:center'></div>
+
+		<div class='card' id='c6' >the ICE</div>
+	</div>
+
+</div>
+
+
+
+
+<script src="test.ice.js"></script>
