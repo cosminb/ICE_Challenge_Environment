@@ -33,7 +33,7 @@ var input = {
 
 		{
 			name : "Camera 210",
-			scor : 11,
+			scor : [11,23,4,4,5,6,13,5],
 			status  :  "@aci232313",
 			color : "#C0FFEE",
 

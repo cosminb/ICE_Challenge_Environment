@@ -47,8 +47,8 @@ test.ui_z_moves = {
 		ui.z.main.init();
 		ui.z.main.render()
 
-		for ( var i = 0; i< 30; i++ ) {
-			for ( var j = 0; j<30; j++ ) {
+		for ( var i = 0; i< 10; i++ ) {
+			for ( var j = 0; j<10; j++ ) {
 
 				this.addLine( i, j ) ;
 			}
@@ -145,8 +145,24 @@ test.dt2 = {
 
 		this.color = 1 - this.color
 
-		ui.z.main.addMove(this.color, this.start[0], this.start[1], point[0], point[1]);
-		ui.f.main.addMove(this.color, this.start[0], this.start[1], point[0], point[1]);
+		api.addMove( this.color, this.start[0], this.start[1], point[0], point[1] );
+
+		//ui.z.main.addMove(this.color, this.start[0], this.start[1], point[0], point[1]);
+		//ui.f.main.addMove(this.color, this.start[0], this.start[1], point[0], point[1]);
+
+		this.start = point;
+
+	},
+
+	simulateDown: function() {
+
+		var point = [  0, this.start[1] +1 ];
+		this.color = 1 - this.color
+
+		api.addMove( this.color, this.start[0], this.start[1], point[0], point[1] );
+
+		//ui.z.main.addMove(this.color, this.start[0], this.start[1], point[0], point[1]);
+		//ui.f.main.addMove(this.color, this.start[0], this.start[1], point[0], point[1]);
 
 		this.start = point;
 
@@ -162,14 +178,43 @@ test.dt2 = {
 
 	},
 
-	run : function ( ) {
+	goDown: function() {
+		this.simulateDown();
 
-	arena.init();
+		if ( this.start[1] > 999 ) {
+
+			return this.go();
+		}
+
+		if ( !this.stop_start )
+			window.setTimeout( function (  ) {
+				test.dt2.goDown();
+			}, cfg.animationStep)
+
+	},
+
+	run : function ( ) {
+		api.startGame( 1000,3000, 10, 10 );
+
+		ui.z.region.setXY( 0, 0 );
+/*
+		arena.init();
 		ui.z.main.init();
 		ui.z.main.render();
 
 		ui.f.main.init();
 		ui.f.main.render();
+*/
+
+		ui.z.objMatrix.init();
+		for ( var i  = 0; i < 10 ; i++ )
+			for ( var j = 0; j< 10; j++ )
+		ui.z.traps.addTrap( i*5, j*5 );
+		ui.z.objMatrix.refresh();
+
+		ui.z.elfs.addElf( 0, 1, 1 );
+
+		ui.z.elfs.addElf( 1, 10, 10 );
 
 		console.log( "yt") ;
 		this.go();

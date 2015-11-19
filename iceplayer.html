@@ -17,21 +17,11 @@ transform: matrix3d(0.7109, 0, -0.703279, 0,
 </style>
 
 
-<svg width="1400" height="1400"
+<svg width="10400" height="10400"
 xmlns="http://www.w3.org/2000/svg" version="1.1"
 xmlns:xlink="http://www.w3.org/1999/xlink">
 
 
-<defs>
-  <filter id="theBlur">
-    <feGaussianBlur in="SourceGraphic" stdDeviation="10"  result="blur2"/>
-            <feMerge>
-            <feMergeNode in="blur2" />
-            <feMergeNode in="SourceGraphic" />
-        </feMerge>
-  </filter>
-
-</defs>
 
 </svg>
 
@@ -64,8 +54,8 @@ var cfg = {
 
 
 	//to be updated
-	rowCount : 500,
-	colCount : 1000,
+	rowCount : 0,
+	colCount : 0,
 	startX   : 0,
 	startY   : 0,
 
@@ -102,24 +92,33 @@ var api = {
 	render : function ( ) {
 	},
 
-	startCompetition : function ( rows, cols, startX, startY ) {
+	startCompetition : function ( rowCount, colCount, startX, startY ) {
 
 		cfg.rowCount = rowCount;
         cfg.colCount = colCount;
 
+        cfg.maxRow = Math.max( cfg.maxRow, rowCount );
+        cfg.maxCol = Math.max( cfg.maxCol, colCount );
+
         cfg.startX = startX;
         cfg.startY = startY;
-
-
-
-        arena.init();
-        zPreview.init();
 
 	},
 
 	startGame : function (rows, cols, startX, startY ) {
 
         this.startCompetition( rows, cols, startX, startY );
+
+        this.init ( ) ;
+	},
+
+	init : function ( ) {
+		arena.init();
+		ui.z.main.init();
+		ui.f.main.init();
+
+		ui.f.main.render();
+		ui.z.main.render();
 
 	},
 
@@ -129,23 +128,13 @@ var api = {
 	addTrap : function ( ) {
 	},
 
-}
+	addMove : function (color, x1, y1, x2, y2  ) {
 
+		ui.z.main.addMove(color, x1, y1, x2, y2);
+		ui.f.main.addMove(color, x1, y1, x2, y2);
 
+	}
 
-
-function Region ( x1, y1, x2, y2 ) {
-	this.x1 = x1;
-	this.y1 = y1;
-	this.x2 = x2;
-	this.y2 = y2;
-}
-
-Region.prototype.setXYWH = function ( x, y, w, h ) {
-	this.x1 = x;
-	this.y1 = y;
-	this.x2 = x + w;
-	this.y2 = y + h;
 }
 
 
@@ -200,9 +189,65 @@ ui.z.style = {
 ui.z.board = {
 
 	render : function ( ) {
-	    this.paper = Raphael(0, 0, 1000, 1000);
+	    this.paper = Raphael(0, 0, 100000, 100000);
 
-	    console.log( this.paper );
+		this.injectDefs( );
+	},
+
+	injectDefs : function ( ) {
+		var height = cfg.z.rowCount * cfg.z.dist;
+		var width = cfg.z.colCount * cfg.z.dist;
+		this.paper.canvas.innerHTML += `
+			<style>
+				.elf {
+					transform-origin : center;
+					z-index : 100;
+					animation: elf_animation 1s infinite alternate ;
+				}
+
+				@keyframes elf_animation {
+					0% { transform: rotateZ(0deg);
+ }
+
+					100% { transform: rotateZ(360deg);
+}
+				}
+
+				@keyframes circle_resized_animation {
+					0% { rx : 2px;ry : 2px;}
+					100% {rx : 14px;ry : 14px;}
+				}
+
+				.circle_resized {
+					animation: circle_resized_animation 0.7s infinite alternate;
+				}
+
+			</style>
+			<defs>
+				<filter id="theBlur"  width = "350%" height = "350%" filterUnits='objectBoundingBox'>
+					<feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur2"/>
+					<feMerge>
+						<feMergeNode in="blur2" />
+						<feMergeNode in="SourceGraphic" />
+					</feMerge>
+				</filter>
+
+				<clipPath id="theClip" >
+					<rect x="`+ui.z.style.offsetX+`" y="`+ui.z.style.offsetY+`" width="`+width+`" height="`+height+`" />
+				</clipPath>
+
+				<radialGradient id="theRadialGradient" r="65%" spreadMethod="pad">
+					<stop offset="0%" stop-color="white" stop-opacity="1" />
+					<stop offset="30%" stop-color="blue" stop-opacity="0.9" />
+					<stop offset="60%" stop-color="white" stop-opacity="0.5" />
+					<stop offset="80%" stop-color="blue" stop-opacity="0.2" />
+					<stop offset="100%" stop-color="red" stop-opacity="0" />
+				</radialGradient>
+
+			</defs>
+
+			<g clip-path='url(#theClip)' id='gates'></g>
+		`;//
 	},
 
 
@@ -247,7 +292,12 @@ ui.z.board = {
 			path.style.strokeWidth = 3;
 
 
-	}
+	},
+
+	ellipse : function ( x1, y1, rx, ry ) {
+		var item = this.paper.ellipse(x1, y1, rx, ry);
+		return item;
+	},
 
 }
 
@@ -256,10 +306,11 @@ ui.z.main =  {
 
 	render : function ( ) {
 		ui.z.board.render();
+		ui.z.gates.render();
+
 		ui.z.grid.render();
 		ui.z.oldLines.render();
 
-		ui.z.gates.render();
 	},
 
 	init : function ( ) {
@@ -280,13 +331,18 @@ ui.z.main =  {
 		window.requestAnimationFrame( function ( ) {
 			ui.z.moves.add( player, x1, y1, x2, y2 );
 			ui.z.movesMatrix.addMove(player, x1, y1, x2, y2 );
+
 		});
 	},
 
 	refresh : function ( ) {
 		ui.z.oldLines.update();
 		ui.z.moves.clear();
+		ui.z.gates.refresh();
 
+		ui.z.objMatrix.refresh();
+
+		ui.z.elfs.refresh();
 	},
 
 }
@@ -339,6 +395,35 @@ ui.z.grid = {
 	},
 }
 
+
+
+function LineItem (el, x1, y1, y2, w ) {
+	this.x1 = x1;
+
+	this.w = w;
+
+	this.y1 = y1;
+	this.y2 = y2;
+
+	this.hidden = false;
+
+	this.el = el;
+
+}
+LineItem.prototype.lineInRange = function ( region ) {
+		var inside = (
+			   region.x1 <= this.x1
+			&& region.x2 >= this.x1
+
+			&& region.y1 <= this.y2
+			&& region.y2 >= this.y1
+		);
+
+		return inside;
+}
+
+
+
 ui.z.gates = {
 	obj : {
 		middle : undefined,
@@ -348,37 +433,267 @@ ui.z.gates = {
 
 	render : function ( ) {
 
+			this.gates = [];
+
+
+
+
 			var dist = cfg.z.dist;
 			var gateHeight = (cfg.gateEnd - cfg.gateStart) * dist;
-			var gateWidth = dist *10;
+			var gateWidth = dist/2;
 			var gateStart = cfg.gateStart * dist
 			var middleX = cfg.colCount / 2 * dist;
 
-			//border
-			//var border = ui.z.board.path( 0, 0, cfg.colCount * dist, cfg.rowCount * dist, "rgba(255, 255, 255, 0.7 )" );
-
 			//middle
-			this.obj.middle = ui.z.board.fillRect (  middleX,  0, dist * 2, cfg.rowCount * dist, "rgba(255, 255, 255, 0.7 )"  );
+			var container = document.getElementById("gates");
+
+			var el = ui.z.board.fillRect (  middleX,  0, 5, cfg.rowCount * dist, "rgba(255, 255, 255, 0.7 )"  );
+			this.obj.middle = new LineItem( el, cfg.colCount / 2, 0, cfg.rowCount, 5 );
+
+			//hack for clip-path to be relative to arena. Another reason to go SVG
+			container.appendChild( el.node );
 
 			//left gate
-			this.obj.left = ui.z.board.fillRect ( 0, gateStart , gateWidth, gateHeight, "rgba(255, 255, 255, 0.7 )");
+			var el = ui.z.board.fillRect ( 0, gateStart, gateWidth, gateHeight, cfg.colors[0] ); //"rgba(255, 255, 255, 1 )");
+			this.obj.left = new LineItem( el, 0, cfg.gateStart, cfg.gateEnd, gateWidth );
+			container.appendChild( el.node );
+			el.node.setAttribute("filter", "url(#theBlur)" );
 
 			//right gate
-			this.obj.right = ui.z.board.fillRect ( cfg.colCount * dist - gateWidth, gateStart, gateWidth, gateHeight, "rgba(255, 255, 255, 0.7 )");
+			var el = ui.z.board.fillRect ( cfg.colCount * dist - gateWidth, gateStart, gateWidth, gateHeight, cfg.colors[1] ) //"rgba(255, 255, 255, 0.7 )");
+			this.obj.right = new LineItem( el, cfg.colCount, cfg.gateStart, cfg.gateEnd, gateWidth );
+			container.appendChild( el.node );
+	},
 
+	refresh : function ( ) {
+
+		this.refreshLine( this.obj.middle );
+		this.refreshLine( this.obj.left) ;
+		this.refreshLine( this.obj.right );
+	},
+	refreshLine : function ( line ) {
+		if ( !line.lineInRange( ui.z.region ) ) {
+			if ( !line.hidden ) {
+				line.hidden = true;
+				line.el.hide();
+			}
+			return ;
+		}
+
+		line.el.show();
+		line.hidden = false;
+
+		var offsetX = -(ui.z.region.x1)* cfg.z.dist + ui.z.style.offsetX;
+		var offsetY = -(ui.z.region.y1)* cfg.z.dist + ui.z.style.offsetY;
+
+
+		var transform = [ "T", offsetX, offsetY ];
+
+		line.el.transform( transform );
+	},
+}
+
+
+
+ui.z.objMatrix = {
+	matrix : [],
+	visible : [],
+
+
+	init : function ( ) {
+		var maxRow = cfg.maxRow / 5 + 1;
+		var maxCol = cfg.maxCol / 5 + 1;
+
+		for ( var i = 0; i<= maxRow; i++ ) {
+			this.matrix[i] = new Array( maxCol+1 );
+
+			for ( var j = 0; j<= maxCol; j++ ) {
+				this.matrix[i][j] =  undefined;
+			}
+		}
+	},
+
+
+	addItem : function (obj ) {
+
+		/*
+		 _
+		|\  (r,c) = (xmin,ymin)
+									?wut
+		/   (r,c) = (xmin,ymin)
+
+		*/
+
+		var r = Math.floor( obj.x / 5 );
+		var c = Math.floor( obj.y / 5 );
+
+		obj.at = { x : 1, y : 1 };
+
+		this.matrix[ r ][ c ] = obj; //.push( obj );
+
+
+		this.hide( obj );
+
+	},
+
+	refresh : function ( ) {
+		this.makeRegionVisible();
+	},
+
+	makeRegionVisible : function () {
+		this.hideAll( );
+
+		var region = ui.z.region;
+
+		var lines = this.matrix;
+
+		var i1 = Math.floor( region.x1 / 5 );
+		var i2 = Math.floor( region.x2 / 5 );
+
+		var j1 = Math.floor( region.y1 / 5 );
+		var j2 = Math.floor( region.y2 / 5 );
+
+
+		for ( var i = i1; i<=i2; i++ ) {
+			for ( var j = j1; j<=j2; j++ ) {
+					if ( !lines[i][j] ) continue;
+					this.show( lines[i][j] );
+			}
+		}
+
+	},
+
+
+	show : function ( item ) {
+
+		item.el.show();
+
+		var offsetX = ui.z.region.x1 * cfg.z.dist - ui.z.style.offsetX;
+		var offsetY = ui.z.region.y1 * cfg.z.dist - ui.z.style.offsetY;
+
+
+		item.at = {
+			cx: item.x * cfg.z.dist - offsetX,
+			cy: item.y * cfg.z.dist - offsetY
+		}
+
+		item.el.attr(item.at)
+
+		this.visible.push( item );
+
+	},
+	hide : function ( item ) {
+		item.el.hide();
+	},
+
+	hideAll : function ( ) {
+		for ( var i = this.visible.length-1; i>=0; i-- ) {
+			this.hide( this.visible[i] )
+		}
+
+		this.visible.length = 0;
 	}
 }
 
-ui.z.traps = {
-	add : function ( x1, y1, x2, y2 ) {
 
-	},
+Item = function ( el, x, y ) {
+	this.x = x;
+	this.y = y;
+	this.at = { cx : x, cy : y };
 
-	render : function ( trap ) {
-	},
+	this.r = 0;
+	this.c = 0;
+
+	this.el = el;
+
+		document.getElementById("gates").appendChild( el.node );
+
+
 }
 
+
+
 ui.z.elfs = {
+
+	elfs : {},
+
+	addElf : function ( index, x, y ) {
+		el = ui.z.board.fillRect(x * cfg.z.dist, y * cfg.z.dist, 20, 20, "red");
+
+		var obj = new Item( el, x, y );
+		//ui.z.objMatrix.addItem( obj );
+
+		var color = cfg.colors[ index % 2 ];
+		obj.el.node.style.fill = color
+		obj.el.attr("stroke-width", 0);
+		obj.el.node.setAttribute("class", "elf" );
+
+					obj.el.node.setAttribute("filter", "url(#theBlur)" );
+
+
+		this.elfs[ index ] =  obj ; //{ el : el, x : x, y : y };
+
+		this.positionElf(index  );
+	},
+
+	moveElf : function ( index, x, y ) {
+		this.elfs[index].x = x;
+		this.elfs[ index] . y = y;
+
+		var item =  this.elfs[ index ];
+
+		var offsetX = ui.z.region.x1 * cfg.z.dist - ui.z.style.offsetX;
+		var offsetY = ui.z.region.y1 * cfg.z.dist - ui.z.style.offsetY;
+
+
+		item.at = {
+			x: item.x * cfg.z.dist - offsetX -10 ,
+			y: item.y * cfg.z.dist - offsetY -10
+		}
+
+		item.el.animate(item.at, cfg.animationStep)
+
+
+	},
+	positionElf : function (index ) {
+		var item =  this.elfs[ index ];
+
+		var offsetX = ui.z.region.x1 * cfg.z.dist - ui.z.style.offsetX;
+		var offsetY = ui.z.region.y1 * cfg.z.dist - ui.z.style.offsetY;
+
+
+		item.at = {
+			x: item.x * cfg.z.dist - offsetX -10 ,
+			y: item.y * cfg.z.dist - offsetY -10
+		}
+
+		item.el.attr(item.at)
+
+		console.log( item, item.at );
+
+	},
+
+	refresh : function ( ) {
+		for ( var i in this.elfs )
+			this.positionElf(i )
+	},
+
+}
+
+ui.z.traps = {
+	addTrap: function(x,y) {
+
+		el = ui.z.board.ellipse(x * cfg.z.dist, y * cfg.z.dist, 10, 10);
+
+		var obj = new Item( el, x, y );
+		ui.z.objMatrix.addItem( obj );
+
+		obj.el.node.style.fill = "url(#theRadialGradient)"
+		obj.el.attr("stroke-width", 0);
+		obj.el.node.setAttribute("class", "circle_resized" );
+
+	},
+
 }
 
 ui.z.moves = {
@@ -404,9 +719,9 @@ ui.z.moves = {
 		var color = cfg.colors[ player ];
 
 
-		window.requestAnimationFrame( function ( ) {
+		//window.requestAnimationFrame( function ( ) {
 			ui.z.moves.animateLine( line, path,color  );
-		});
+		//});
 
 	},
 
@@ -471,14 +786,14 @@ ui.z.oldLines = {
 		line = ui.z.board.pathWithFilter(["M", 0, 0, "L", 10, 0], "url(#theBlur)");
 		line.attr( "stroke", cfg.colors[0] );
 		line.attr( "stroke-width" , 3 );
-		//line.attr( "clip-rect", clip );
+		line.attr( "clip-rect", clip );
 		this.lines[0] = line;
 
 
 		line = ui.z.board.pathWithFilter(["M", 0, 0, "L", 10, 0], "url(#theBlur)");
 		line.attr( "stroke", cfg.colors[1] );
 		line.attr( "stroke-width" , 3 );
-		//line.attr( "clip-rect", clip );
+		line.attr( "clip-rect", clip );
 		this.lines[1] = line;
 	},
 
@@ -496,15 +811,17 @@ ui.z.oldLines = {
 		this.path2 = ui.z.movesMatrix.getPath( 1, ui.z.region );
 	//*/
 
-		window.requestAnimationFrame( function ( ) { ui.z.oldLines.updateLines() } );
+		//window.requestAnimationFrame( function ( ) {
+			ui.z.oldLines.updateLines()
+		//} );
 	},
 
 	updateLines : function ( )  {
 
-			this.lines[0].attr("path", this.path1 );
+		this.lines[0].attr("path", this.path1 );
 		this.lines[0].transform( this.transform );
 
-				this.lines[1].attr("path", this.path2 );
+		this.lines[1].attr("path", this.path2 );
 		this.lines[1].transform( this.transform );
 
 	},
@@ -723,11 +1040,9 @@ ui.f.board = {
 	fillRect : function ( x1, y1, w, h, color ) {
 		this.ctx.lineWidth = 0;
 
-		this.ctx.fillStyle = "white" //color;
+		this.ctx.fillStyle = color //color;
 
 		this.ctx.fillRect( x1, y1, w, h );
-
-		console.log( x1, y1, w, h, color  );
 	},
 }
 
@@ -741,7 +1056,6 @@ ui.f.main = {
 		cfg.f.width  = (cfg.colCount + 1)  * cfg.f.dist;
 		cfg.f.height = (cfg.rowCount + 1)* cfg.f.dist;
 
-		console.log( cfg.f );
 	},
 
 	addMove : function ( color, x1, y1, x2, y2 ) {
@@ -759,7 +1073,7 @@ ui.f.gates = {
 
 			var dist = cfg.f.dist;
 			var gateHeight = (cfg.gateEnd - cfg.gateStart) * dist;
-			var gateWidth = dist *10;
+			var gateWidth = 2;
 			var gateStart = cfg.gateStart * dist
 			var middleX = cfg.colCount / 2 * dist;
 
@@ -767,14 +1081,14 @@ ui.f.gates = {
 			ui.f.board.rect( 0, 0, cfg.colCount * dist, cfg.rowCount * dist, "rgba(255, 255, 255, 0.7 )" );
 
 			//middle
-			ui.f.board.fillRect ( middleX, 0, dist * 2, cfg.rowCount * dist, "rgba(255, 255, 255, 0.7 )"  );
+			ui.f.board.fillRect ( middleX, 0, 2, cfg.rowCount * dist, "rgba(255, 255, 255, 0.7 )"  );
 
 
 			//left gate
-			ui.f.board.fillRect ( 0, gateStart , gateWidth, gateHeight, "rgba(255, 255, 255, 0.7 )");
+			ui.f.board.fillRect ( 0, gateStart , gateWidth, gateHeight, cfg.colors[0] );
 
 			//right gate
-			ui.f.board.fillRect ( cfg.colCount * dist - gateWidth, gateStart, gateWidth, gateHeight, "rgba(255, 255, 255, 0.7 )");
+			ui.f.board.fillRect ( cfg.colCount * dist - gateWidth, gateStart, gateWidth, gateHeight, cfg.colors[1] );
 
 	},
 }

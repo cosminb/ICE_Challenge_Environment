@@ -864,7 +864,10 @@ ui.rank = {
 	update : function ( ) {
 		var html = "";
 		for ( var i in input.teams ) {
-			html += "<div class='team' ><span class='name' style=' color:"+input.teams[i].color+"'>" + input.teams[i].name + "</span>  " + input.teams[i].scor + "p <br /><span class='status'> "+input.teams[i].status+"</span></div>"
+			html += "<div class='team' ><span class='name' style=' color:"+input.teams[i].color+"'>"
+						+ input.teams[i].name + "</span>  " +
+						input.teams[i].scor + "p <br /><span class='status'> "+
+						input.teams[i].status+"</span></div>"
 		}
 
 		document.getElementById("rank").innerHTML = html;
