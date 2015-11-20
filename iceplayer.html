@@ -66,7 +66,7 @@ var cfg = {
 	startY   : 0,
 
 	colors : [
-		"#BADA55",
+		"red",
 		"#5ADBEE"
 	],
 
@@ -691,7 +691,7 @@ ui.z.elfs = {
 	elfs : {},
 
 	addElf : function ( index, x, y ) {
-		el = ui.z.board.fillRect(x * cfg.z.dist, y * cfg.z.dist, 20, 20, "red");
+		el = ui.z.board.fillRect(x * cfg.z.dist, y * cfg.z.dist, 30, 30, "red");
 
 		var obj = new Item( el, x, y );
 		//ui.z.objMatrix.addItem( obj );
@@ -720,8 +720,8 @@ ui.z.elfs = {
 
 
 		item.at = {
-			x: item.x * cfg.z.dist - offsetX -10 ,
-			y: item.y * cfg.z.dist - offsetY -10
+			x: item.x * cfg.z.dist - offsetX -15 ,
+			y: item.y * cfg.z.dist - offsetY -15
 		}
 
 		item.el.animate(item.at, cfg.animationStep)

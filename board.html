@@ -10,10 +10,33 @@
 	  </filter>
 	</defs>
 </svg>
+
+
+
+<svg width="1400" height="1400" style='position:absolute; left : -10000px; ;'
+xmlns="http://www.w3.org/2000/svg" version="1.1"
+xmlns:xlink="http://www.w3.org/1999/xlink">
+
+
+<defs>
+  <filter id="theBlur2">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="10"  result="blur2"/>
+            <feMerge>
+            <feMergeNode in="blur2" />
+            <feMergeNode in="SourceGraphic" />
+        </feMerge>
+  </filter>
+
+</defs>
+
+</svg>
+
+
+
 <style>
 #defs { display : none; }
  
-    body {color : white; perspective: 1300px;background: #1F1F1F;overflow : hidden;}
+    body { overflow : hidden; margin-left : 300px;font-family : Hack; color : white; perspective: 1300px;background: #1F1F1F;}
 
 /*
     svg {
@@ -28,11 +51,24 @@ transform: matrix3d(0.7109, 0, -0.703279, 0,
 */
 
 #clock {    -webkit-filter: url(#theBlur3);
- color : #BADA55; position : absolute; left : 750px; top : 10px; font-size : 50px; }
+ color : #BADA55; position : absolute; left : 1200px; top : 10px; font-size : 50px; }
 
 #rang { position : absolute; left : 0px; top : 10px; }
 
 #next { position : absolute; left : 400px; top : 490px; }
+
+#notes { z-index : 200; position : absolute; left : 500px; top: 690px; overflow : hidden; height : 240px; width : 950px;}
+
+#notes:hover {  overflow : auto; }
+
+
+@font-face {
+  font-family: 'Hack';
+  src: url('/fonts/eot/latin/hack-regular-latin-webfont.eot');
+  font-weight: 400;
+  font-style: normal;
+}
+
 
 </style>
 
@@ -40,6 +76,8 @@ transform: matrix3d(0.7109, 0, -0.703279, 0,
 <div id='clock'></div>
 <div id='rank'></div>
 <div id='next'></div>
+
+<div id='notes'></div>
 
 
 <canvas id="f_canvas" width=200 height=200 style='position : absolute; left : 0px; top : 0px;'> </canvas>
@@ -59,8 +97,8 @@ var cfg = {
 
 	//cfg for zoomPreview
 	z : {
-		rowCount : 10,
-		colCount : 20,
+		rowCount : 16,
+		colCount : 32,
 
 		dist : 30,
 	},
@@ -195,7 +233,7 @@ ui.z.draw = {
 
 ui.z.style = {
 
-	offsetX : 400,
+	offsetX : 500,
 	offsetY : 150,
 
 	grid : {
@@ -207,7 +245,7 @@ ui.z.style = {
 ui.z.board = {
 
 	render : function ( ) {
-	    this.paper = Raphael(0, 0, 1000, 1000);
+	    this.paper = Raphael(0, 0, 2000, 1000);
 
 	    console.log( this.paper );
 	},
@@ -269,6 +307,8 @@ ui.z.main =  {
 		ui.z.gates.render();
 
 		ui.z.icons.render();
+		
+		ui.notice.render( );
 	},
 
 	init : function ( ) {
@@ -303,26 +343,54 @@ ui.z.main =  {
 ui.z.icons = {
 	render : function ( ) {
 		var html =
-					"<path d='" +this.renderPath(  ) + "' fill='none' stroke='#BADA55' stroke-width=3 filter='url(#theBlur)'></path>"
+					"<path d='" +this.renderPath(  ) + "'fill='none' stroke='#5ADB33' stroke-width=3 filter='url(#theBlur2)'></path>" 
 					
+					+ this.images.join( " ");
+					/*+
+					"<path d='M400,150L430 180L430 210L430 240L460 240L490 240L505 240' fill='none' stroke='#BADA55' stroke-width=3 filter='url(#theBlur2)'></path>" +
+					"<image width='40' height='40' x=400 y=120 style='position:absolute;left:300px;top : 300px;' xlink:href='welcome.png'/>" +
+					"<image width='40' height='40' x = 500 y=200 xlink:href='pizza.png'/>" +
+					"<image width='40' height='40' x = 960 y=400 xlink:href='cup.png'/>" +
+					"<image width='40' height='40' x = 600 y=150 xlink:href='laptop.png'/>" +
 
+					"<image width='40' height='40' x = 650 y=300 xlink:href='FAQ.png'/>"
+*/
+					
+console.log( html );
 		ui.z.board.paper.canvas.innerHTML+= html
 	},
 	
 	renderPath : function  ( ) {
-		var path = [];
+		var path = this.path  =[];
+		var images = this.images = [];
 		
-		var offsetX = 400;
-		var offsetY = 150;
+		var offsetX = ui.z.style.offsetX;
+		var offsetY = ui.z.style.offsetY;
 		
 		
 		var pointX = offsetX;
-		var pointY = offsetY;
+		var pointY = offsetY  + 16 * 30;
 		
-		for ( var i in input.milestones ) {
-			path.push( "M", input.milestones[i].posX * 30 + offsetX , input.milestones[i].posY * 30 + offsetY, "L", pointX, pointY );
-			pointX = input.milestones[i].posX * 30 + offsetX ;
-			pointY = input.milestones[i].posY * 30 + offsetY ;
+		var x = 0;
+		var y = 16;
+		for ( var i = 0; i<input.milestones.length; i++ ) {
+			
+			
+			x = input.milestones[ i ].posX;
+			y = 16- input.milestones[ i ].posY;
+			
+			console.log( x, y );
+			path.push( "M", x * 30 + offsetX , y * 30 + offsetY, "L", pointX, pointY );
+			pointX = x * 30 + offsetX ;
+			pointY = y * 30 + offsetY ;
+			
+			
+			if ( input.milestones[i].img ) {
+	
+			  this.images.push ( "<image filter='url(#theBlur2)' width='40' height='40' x ="+(x * 30 + offsetX) +" y=" + (y * 30 + offsetY) +" xlink:href='" + input.milestones[ i ] .img  + "'/>" );
+			  this.images.push ( "  <text fill='white' filter='url(#theBlur2)' x="  +(x * 30 + offsetX + 10) +" y="+ (y * 30 + offsetY) +" font-family='Verdana'  font-size='15'> " + input.milestones[i].time+" </text> " );
+			}
+			
 		}
 		
 		return path.join ( " " );
@@ -834,8 +902,8 @@ ui.f.moves = {
 
 
 ui.clock = {
-	start : new Date('November 19, 2015 16:00:00'),
-	end   : new Date('November 20, 2015 18:00:00'),
+	start : new Date('November 20, 2015 20:00:00'),
+	end   : new Date('November 21, 2015 20:00:00'),
 
 	render : function ( ) {
 	},
@@ -900,11 +968,32 @@ ui.rank = {
 	},
 }
 
+
+ui.notice = {
+	render : function (  ) {
+		var html = "";
+		for ( var i in input.notes )  {
+			html +=  this.noticeHTML( input.notes[ i ] );
+		}
+		console.log( html );
+		document.getElementById( "notes" ).innerHTML = html;
+	},
+	
+	noticeHTML : function  ( note) {
+		var html = "<div class='note'><span class='title'>" + note.title + "</span> " + note.content + "</div>";
+		
+		return html;
+	}
+}
 </script>
 
 <style>
-	.team { color : white; margin-top : 3px; border-bottom : 1px solid #777; width : 300px; }
-	.team .name { width:200px; display : inline-block; font-size:26px;font-weight:bold; }
+
+	#notes .note { margin-bottom : 30px }
+	#notes { font-size : 55px; color : #eee; }
+	#notes .title { text-decoration : underline; font-weight:bold; } 
+	.team { color : white; margin-top : 3px; border-bottom : 1px solid #777; width : 400px; }
+	.team .name { width:300px; display : inline-block; font-size:26px;font-weight:bold; }
 	.team .status { font-size : 26px; font-variant : small-caps }
 	.team .score { font-size : 26px; font-variant : small-caps }
 </style>

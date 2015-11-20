@@ -1,10 +1,33 @@
+<style>
+
+    body {background: #1F1F1F; perspective:1600px;}
+
+
+	svg {     transform: rotateX(80deg) scaleY(0.6); }
+
+
+	#place { perspective : 600px; perspective-origin: 50% 10%; width : 1000px; }
+
+</style>
 
 
 
 
 <style>
 
-    body {margin-left : 100px; background: #1F1F1F;overflow : hidden;perspective:1600px;}
+    body {background: #1F1F1F;overflow : hidden; perspective:1600px;}
+
+/*
+    svg {
+
+transform: matrix3d(0.7109, 0, -0.703279, 0,
+0, 1, 0, 0,
+0.703279, 0, 0.7109, 0,
+0, 0, 0, 1);
+
+}
+
+*/
 
 
 	svg {     transform: rotateX(80deg) scaleY(0.6); }
@@ -25,7 +48,6 @@
 
 <div id='place'>
 </div>
-
 <svg width="10400" height="10400"
 xmlns="http://www.w3.org/2000/svg" version="1.1"
 xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -65,8 +87,6 @@ var cfg = {
 	//to be updated
 	rowCount : 0,
 	colCount : 0,
-	floorsCount : 0,
-
 	startX   : 0,
 	startY   : 0,
 
@@ -81,7 +101,6 @@ var cfg = {
 
 	maxRow   : 500,
 	maxCol   : 1000,
-	maxFloors : 400,
 
 	animationStep : 100,
 }
@@ -89,93 +108,83 @@ var cfg = {
 var game = {
 	currentX : 0,
 	currentY : 0,
-	currentZ : 0, 
 
 	init : function ( ) {
 
         this.currentX = cfg.startX;
         this.currentY = cfg.startY;
-		
-		this.currentZ = cfg.startZ;
+
 	}
 }
 
 
 var api = {
-	startGame : function (rows, cols, startX, startY, startZ ) {
-        this.startCompetition( rows, cols, startX, startY, startZ );
+	startGame : function (rows, cols, startX, startY ) {
+        this.startCompetition( rows, cols, startX, startY );
 
         this.init ( ) ;
-
+		
 		this.currentX = startX;
 		this.currentY = startY;
-		this.currentZ = startZ;
 	},
-
-	addNextMove : function ( player, x, y, z ) {
+	
+	addNextMove : function ( player, x, y ) {
 		this.addLine( parseInt(player)-1, this.currentX, this.currentY, x, y );
 		this.currentX = x;
 		this.currentY = y;
-		this.currentZ = z;
 	},
-
-
-	addNextMoveL2 : function ( player, x, y, z, xd1, yd1, zd1, xd2, yd2, zd2, xd3, yd3, zd3, xd4, yd4, zd4, drgX, drgY, drgZ ) {
-
+	
+	
+	addNextMoveL2 : function ( player, x, y, xd1, yd1, xd2, yd2 ) {
+		
 		player = parseInt(player)-1
-		this.addLine( player, this.currentX, this.currentY, this.currentZ, x, y, z );
+		this.addLine( player, this.currentX, this.currentY, x, y );
 		this.currentX = x;
 		this.currentY = y;
-		this.currentZ = z;
-
-		this.moveDefender( 0 , xd1, yd1 );
-		this.moveDefender( 1, xd2, yd2 );
-		this.moveDefender( 2, xd3, yd3 );
-		this.moveDefender( 3, xd4, yd4 );
+		
+		this.moveDefender( player , xd1, yd1 );
+		this.moveDefender( player + 1, xd2, yd2 );
 	},
-
-	addTrap : function ( x, y, z ) {
-		ui.z.traps.addTrap( x, y, z );
+	
+	addTrap : function ( x, y ) {
+		ui.z.traps.addTrap( x, y );
 	},
-
-	addDefender : function  ( index, x, y, z ) {
-		ui.z.elfs.addElf( index, x, y, z );
+	
+	addDefender : function  ( index, x, y ) {
+		ui.z.elfs.addElf( index, x, y );
 	},
-
-	moveDefender : function ( index, x, y, z) {
-		ui.z.elfs.moveElf( index, x, y, z );
+	
+	moveDefender : function ( index, x, y) {
+		ui.z.elfs.moveElf( index, x, y );
 
 	},
-
+	
 	render : function ( ) {
 	},
 
-	startCompetition : function ( rowCount, colCount, floorCount,  startX, startY, startZ ) {
+	startCompetition : function ( rowCount, colCount, startX, startY ) {
 
-
+		
 		cfg.rowCount = rowCount;
         cfg.colCount = colCount;
-		cfg.floorCount = floorCount;
 
         cfg.maxRow = Math.max( cfg.maxRow, rowCount );
         cfg.maxCol = Math.max( cfg.maxCol, colCount );
-        cfg.maxFloor = Math.max( cfg.maxFlorr, floorCount );
 
         cfg.startX = startX;
         cfg.startY = startY;
-		cfg.startZ = startZ;
 
 	},
 
 
 
 	init : function ( ) {
-
-			//generate random color
+	
+			//generate random color 
 /*
 		var hue = Math.floor( Math.random() * 360 )  % 360
 		cfg.colors[0] = "hsla("+hue+", 64%, 59%,1 )";
-
+		
 		var hue = ( hue + 100 ) % 360 ;
 		cfg.colors[1] = "hsla("+hue+", 64%, 79%, 1)";
 //*/
@@ -187,7 +196,7 @@ var api = {
 
 		ui.f.main.render();
 		ui.z.main.render();
-
+		
 		ui.z.objMatrix.init();
 		ui.z.objMatrix.refresh();
 
@@ -195,21 +204,21 @@ var api = {
 	},
 
 
-	addLine : function (color, x1, y1, z1, x2, y2, z2  ) {
+	addLine : function (color, x1, y1, x2, y2  ) {
 
-		ui.z.main.addMove(color, x1, y1, z1, x2, y2, z2);
-		ui.f.main.addMove(color, x1, y1, z1, x2, y2, z2);
+		ui.z.main.addMove(color, x1, y1, x2, y2);
+		ui.f.main.addMove(color, x1, y1, x2, y2);
 
 	},
-
-
+	
+	
 	setGameInfo : function ( player1, player2, battle_phase, battle_size  ) {
 		cfg.player1 = player1;
 		cfg.player2 = player2;
-
+		
 		cfg.battle_phase = battle_phase;
 		cfg.battle_size   = battle_size;
-
+		
 		ui.hud.names.render();
 		ui.hud.names.refresh();
 	},
@@ -268,7 +277,9 @@ ui.z.style = {
 ui.z.board = {
 
 	render : function ( ) {
-	    this.paper = Raphael(0, 0, 100000, 100000);
+	    this.paper = Raphael(90, -100, 1000, 1000);
+
+		document.getElementById('place').appendChild(this.paper.canvas);
 
 		this.injectDefs( );
 	},
@@ -304,7 +315,7 @@ ui.z.board = {
 			</style>
 			<defs>
 				<filter id="theBlur"  width = "350%" height = "350%" filterUnits='objectBoundingBox'>
-					<feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur2"/>
+					<feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur2"/>
 					<feMerge>
 						<feMergeNode in="blur2" />
 						<feMergeNode in="SourceGraphic" />
@@ -368,7 +379,7 @@ ui.z.board = {
 			'all '+(animationStep/1000)+'s linear';
 			// Go!
 			path.style.strokeDashoffset = '0';
-			path.style.strokeWidth = 2;
+			path.style.strokeWidth = 3;
 
 
 	},
@@ -389,9 +400,6 @@ ui.z.main =  {
 
 		ui.z.grid.render();
 		ui.z.oldLines.render();
-
-		ui.z.zoomView.render();
-		ui.z.target.render();
 
 	},
 
@@ -415,8 +423,6 @@ ui.z.main =  {
 			ui.z.movesMatrix.addMove(player, x1, y1, x2, y2 );
 
 		});
-
-		ui.z.target.refresh();
 	},
 
 	refresh : function ( ) {
@@ -424,8 +430,6 @@ ui.z.main =  {
 		ui.z.moves.clear();
 		ui.z.gates.refresh();
 
-
-		ui.z.zoomView.refresh();
 
 		window.requestAnimationFrame( function ( ) {
 				ui.z.objMatrix.refresh();
@@ -873,14 +877,14 @@ ui.z.oldLines = {
 
 		line = ui.z.board.pathWithFilter(["M", 0, 0, "L", 10, 0], "url(#theBlur)");
 		line.attr( "stroke", cfg.colors[0] );
-		line.attr( "stroke-width" , 2 );
+		line.attr( "stroke-width" , 3 );
 		line.attr( "clip-rect", clip );
 		this.lines[0] = line;
 
 
 		line = ui.z.board.pathWithFilter(["M", 0, 0, "L", 10, 0], "url(#theBlur)");
 		line.attr( "stroke", cfg.colors[1] );
-		line.attr( "stroke-width" , 2 );
+		line.attr( "stroke-width" , 3 );
 		line.attr( "clip-rect", clip );
 		this.lines[1] = line;
 	},
@@ -1068,51 +1072,6 @@ ui.z.movesMatrix = {
 	},
 }
 
-ui.z.zoomView = {
-
-	render : function ( ) {
-		this.el = ui.z.board.fillRect( 0, 0, cfg.z.colCount * cfg.f.dist, cfg.z.rowCount * cfg.f.dist, "rgba(255,255,255,0.2)" );
-		this.refresh();
-	},
-
-	refresh : function ( ) {
-		var attr = {
-			x : ui.f.style.offsetX + ui.z.region.x1 * cfg.f.dist,
-			y : ui.f.style.offsetY + ui.z.region.y1 * cfg.f.dist
-		}
-
-		this.el.animate( attr, 200 )
-
-	}
-}
-
-ui.z.target = {
-	render : function ( ) {
-		this.lineH = ui.z.board.path([
-			"M", ui.f.style.offsetX,  ui.f.style.offsetY,
-			"L",cfg.colCount * cfg.f.dist + ui.f.style.offsetX,ui.f.style.offsetY]);
-
-		this.lineH.attr("stroke", "rgba(255,255,255,0.2)"  );
-		this.lineV = ui.z.board.path( [
-			"M", ui.f.style.offsetX , ui.f.style.offsetY ,
-			"L", ui.f.style.offsetX, cfg.rowCount* cfg.f.dist + ui.f.style.offsetY]
-		),
-
-		this.lineV.attr("stroke", "rgba(255,255,255,0.2)"  );
-
-		console.log( this.lineH.node );
-		},
-	refresh : function ( ) {
-		var attr = {
-			x : api.currentX * cfg.f.dist,
-			y : api.currentY * cfg.f.dist
-		}
-
-		this.lineV.animate( { transform : [ "T", attr.x, 0 ].join(" ") })
-		this.lineH.animate( { transform : [ "T", 0, attr.y ].join(" ") } )
-	}
-}
-
 ui.f = {}
 
 ui.f.style = {
@@ -1126,7 +1085,6 @@ ui.f.style = {
 
 
 }
-
 
 ui.f.board = {
 	render : function ( ) {
@@ -1162,6 +1120,7 @@ ui.f.board = {
 		this.ctx.stroke();
 	},
 
+
 	rect : function ( x1, y1, w, h, color ) {
 		this.ctx.lineWidth = 1;
 
@@ -1173,22 +1132,114 @@ ui.f.board = {
 	fillRect : function ( x1, y1, w, h, color ) {
 		this.ctx.lineWidth = 0;
 
-		this.ctx.fillStyle = color //color;
+		this.ctx.fillStyle = "white" //color;
 
 		this.ctx.fillRect( x1, y1, w, h );
+
+		console.log( x1, y1, w, h, color  );
+	},
+
+	line3d : function ( x1, y1, z1, x2, y2, z2, color ) {
+
+		this.line( x1- z1*0.7+100, y1 + z1*0.3, x2 - z2*0.7+100, y2 + z2*0.3, color );
+	},
+	boxZ : function ( x1, y1, x2, y2, z, color ) {
+
+
+		ui.f.board.line3d( x1, y1, z, x2, y1, z,color);
+
+		ui.f.board.line3d( x2, y1, z, x2, y2, z,color);
+
+		ui.f.board.line3d(x2, y2, z, x1, y2, z, color);
+
+		ui.f.board.line3d( x1, y2, z, x1, y1, z, color);
+
+
+	},
+
+	boxY : function ( x1, z1, x2, z2, y, color ) {
+
+		this.ctx.lineWidth = 1;
+
+		this.ctx.strokeStyle = color;
+
+		this.ctx.fillStyle = color;
+
+		this.ctx.beginPath();
+		this.ctx.moveTo( x1- z1*0.7+100, y + z1*0.3 );
+		this.ctx.lineTo( x1- z2*0.7+100, y + z2*0.3 );
+		this.ctx.lineTo( x2- z2*0.7+100, y + z2*0.3 );
+		this.ctx.lineTo( x2- z1*0.7+100, y + z1*0.3 );
+
+		this.ctx.closePath();
+		this.ctx.fill();
+
+	}
+
+}
+
+
+ui.f.cube = {
+	render : function ( ) {
+
+		ui.f.board.ctx.clearRect(0, 0, cfg.f.width, cfg.f.height);
+
+		var color = "rgba(255,255,255,0.4)";
+
+		ui.f.board.boxZ( 10,10,200,100,10, color  );
+
+
+		ui.f.board.boxZ( 10,10,200,100,100, color );
+
+
+		ui.f.board.line3d( 10,10,10, 10,10, 100, color );
+
+
+		ui.f.board.line3d( 10,100,10, 10,100, 100, color );
+
+
+
+		ui.f.board.line3d( 200,10,10, 200,10, 100, color );
+
+
+		ui.f.board.line3d( 200,100,10, 200,100, 100, color );
+
+
+		var x = (ui.z.region.x1 / cfg.rowCount ) * 190 + 10;
+		var z = (ui.z.region.y1 / cfg.colCount ) * 90 + 10;
+
+		console.log( x, z );
+
+		ui.f.board.boxY( x, z, x + 20, z+20, 50, "rgba(105,250,50,0.7)");
+
+		ui.f.board.boxY( x, z, x + 20, z + 20, 100, "rgba(105,250,50,0.2)");
+
+
+	},
+
+}
+
+ui.f.viewport = {
+	render : function ( ) {
+		ui.f.board.box3d(
+
+		);
 	},
 }
 
 ui.f.main = {
 	render : function ( ) {
 		ui.f.board.render();
-		ui.f.gates.render();
+		//ui.f.gates.render();
+
+		ui.f.cube.render();
 	},
 	init : function ( ) {
 		cfg.f.dist   = 200 / (cfg.rowCount);
 		cfg.f.width  = (cfg.colCount + 1)  * cfg.f.dist;
 		cfg.f.height = (cfg.rowCount + 1)* cfg.f.dist;
 
+		console.log( cfg.f );
 	},
 
 	addMove : function ( color, x1, y1, x2, y2 ) {
@@ -1196,35 +1247,6 @@ ui.f.main = {
 	},
 }
 
-ui.f.grid = {
-	render : function (  ) {
-	}
-}
-
-ui.f.gates = {
-	render : function (  ) {
-
-			var dist = cfg.f.dist;
-			var gateHeight = (cfg.gateEnd - cfg.gateStart) * dist;
-			var gateWidth = 2;
-			var gateStart = cfg.gateStart * dist
-			var middleX = cfg.colCount / 2 * dist;
-
-			//border
-			ui.f.board.rect( 0, 0, cfg.colCount * dist, cfg.rowCount * dist, "rgba(255, 255, 255, 0.7 )" );
-
-			//middle
-			ui.f.board.fillRect ( middleX, 0, 2, cfg.rowCount * dist, "rgba(255, 255, 255, 0.7 )"  );
-
-
-			//left gate
-			ui.f.board.fillRect ( 0, gateStart , gateWidth, gateHeight, cfg.colors[0] );
-
-			//right gate
-			ui.f.board.fillRect ( cfg.colCount * dist - gateWidth, gateStart, gateWidth, gateHeight, cfg.colors[1] );
-
-	},
-}
 
 ui.f.elfs = {
 }
@@ -1236,25 +1258,28 @@ ui.f.moves = {
 	add : function ( player, x1, y1, x2, y2 ) {
 		var color = cfg.colors[ player ] ;
 		var dist = cfg.f.dist;
+		
+		/*
 		window.requestAnimationFrame( function ( ) {
 		ui.f.board.line ( x1 * dist, y1 * dist, x2 * dist, y2 * dist, color );
 		});
+		*/
     },
 }
 
 
 ui.hud = {}
 ui.hud.names = {
-
+	
 	refresh : function  ( ) {
 		document.getElementById( "board" ).className = "start";
 	},
-
+	
 	labels : {
 		"S" : "Semifinals",
 		"F" : "Finals",
 		"Q" : "Whatever",
-
+		
 		1 : "Easy",
 		2 : "Medium",
 		3 : "Hard"
@@ -1262,38 +1287,16 @@ ui.hud.names = {
 	render : function (  ) {
 
 		document.getElementById( "team1" ).style.color = cfg.colors[ 0 ];
-
+		
 		document.getElementById( "team2" ).style.color = cfg.colors[ 1 ];
-
+		
 		document.getElementById( "team1" ).innerHTML = cfg.player1
 		document.getElementById( "team2" ).innerHTML = cfg.player2
-
-
-		document.getElementById( "level" ).innerHTML = this.labels[ cfg.battle_phase ]
-		document.getElementById( "round" ).innerHTML = this.labels[ cfg.battle_size  ]
-	},
-
-}
-
-ui.hud.stats = {
-	addMove : function ( color ) {
-
-		this.count[ color ] ++;
-		this.slides[ color ] ++;
-		this.slides[ 1- color ] = 0;
-
-		if ( this.slides[color] > this.maxslide[ color ] ) this.maxslide[color ] = this.slides[color];
-
-		this.refresh ( );
-	},
-	xrefresh : function ( ) {
-		var stats = [];
-
-		var dist = api.currentX;
-		stats = "<b>Slides:</b>" + this.slides[0] + "<br /><b> Max slide:</b>" + this.maxslide[0] + "<br/><b> Dist. to home</b>" + dist;
-		document.getElementById( "stats1" ).innerHTML = this.labels[ cfg.battle_phase ]
-
-	},
+		
+		
+		document.getElementById( "level" ).innerHTML = this.labels[ cfg.battle_phase ]		
+		document.getElementById( "round" ).innerHTML = this.labels[ cfg.battle_size  ] 
+	}
 }
 
 </script>
@@ -1321,11 +1324,11 @@ ui.hud.stats = {
 #board.start #left {top : -400; left : 0px; }
 
 @keyframes right_animation {
-	0% { top : -600px;}
-	23% { top : -600px; }
-	50% {top : -400px;}
-	55% {top : -400px;}
-	100% {top : -200px;  }
+	0% { top : -400px;}
+	23% { top : -400px; }
+	50% {top : -200px;}
+	55% {top : -200px;}
+	100% {top : 0px;  }
 }
 
 #board.start #right {
@@ -1333,7 +1336,7 @@ ui.hud.stats = {
 }
 
 
-#right {top : -200px; left : 150px; }
+#right {top : 0px; left : 150px; }
 
 
 .card { font-size : 25px; transition : all 0.2s; height : 200px; width:150px;line-height : 200px; vertical-align:middle;}
@@ -1351,11 +1354,8 @@ ui.hud.stats = {
 
 		<div class='card' id='team1' style='text-align:left'></div>
 
-		<div class='card' id='stats1' style='text-align:left'></div>
-
 	</div>
 	<div id='right' class='deck'>
-		<div class='card' id='stats2' style='text-align:right'></div>
 
 		<div class='card' id='team2' style='text-align:right'></div>
 
@@ -1369,4 +1369,4 @@ ui.hud.stats = {
 
 
 
-<script src="test.ice.js"></script>
+<script src="test.dice.js"></script>

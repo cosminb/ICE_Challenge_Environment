@@ -194,7 +194,7 @@ test.dt2 = {
 	},
 
 	run : function ( ) {
-		api.startGame( 319,610, 30,  15 );
+		api.startGame( 500, 850, 30,  15 );
 		api.setGameInfo( "Yo N", "Marry", "F", 2 );
 		//ui.z.region.setXY( 0, 0 );
 /*
@@ -206,9 +206,9 @@ test.dt2 = {
 		ui.f.main.render();
 */
 
-		for ( var i  = 0; i < 1 ; i++ )
-			for ( var j = 0; j< 1; j++ )
-		ui.z.traps.addTrap( i*5, j*5 );
+		for ( var i  = 0; i < 100 ; i++ )
+			for ( var j = 0; j< 100; j++ )
+		ui.z.traps.addTrap( i, j );
 
 		api.addDefender( 0, 1, 1 );
 
