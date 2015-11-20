@@ -115,6 +115,9 @@ var input = {
 }, {
 	"title": "Paper Game: ",
 	"content": "Let the game begin"
+}, {
+	"title": "L1 ",
+	"content": "Coding in progress..."
 }
 
 //END NOTES 
