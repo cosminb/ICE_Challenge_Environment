@@ -18,7 +18,11 @@ var input = {
     "points": []
 }, {
     "name": "Da!",
-    "points": []
+    "points": [
+		{	name : "l1Q", score : 3 },
+		{ name : "l1S", score : 2 } ,
+		{ name : "l1S", score : 3 } 
+	]
 }, {
     "name": "Option Explicit",
     "points": []
@@ -33,7 +37,9 @@ var input = {
     "points": []
 }, {
     "name": "NullNameException",
-    "points": []
+    "points": [
+	{ name : "Balloon", score : 1}
+	]
 }, {
     "name": "Javatar",
     "points": []
@@ -45,7 +51,9 @@ var input = {
     "points": []
 }, {
     "name": "BRRC!",
-    "points": []
+    "points": [
+		{name : "L1Q", score : 1 }
+	]
 }, {
     "name": "CBR?",
     "points": []
@@ -59,7 +67,11 @@ var input = {
     "points": []
 }, {
     "name": "TnT",
-    "points": []
+    "points": [
+		{ name : "Balloon", score : 1},
+		{ name : "L1Q", score : 1},
+		
+	]
 }, {
     "name": "SAO",
     "points": []
@@ -77,7 +89,10 @@ var input = {
     "points": []
 }, {
     "name": "module 110",
-    "points": []
+    "points": [
+	{ name : "L1", score : 5},
+		
+	]
 }, {
     "name": "FNice",
     "points": []
@@ -86,13 +101,15 @@ var input = {
     "points": []
 }, {
     "name": "SyntaxError",
-    "points": []
+    "points": [{ name : "L1", score : 4},
+		]
 }, {
     "name": "GreenArt",
     "points": []
 }, {
     "name": "R^2",
-    "points": []
+    "points": [{ name : "L1", score : 3},
+		]
 }, {
     "name": "Dynamic",
     "points": [
@@ -118,7 +135,26 @@ var input = {
 }, {
 	"title": "L1 ",
 	"content": "Coding in progress..."
+},
+
+{ "title" : "Joc Surpriza", content : "la ora 2:30" 
+},
+{
+    "title" : "L1 ",
+	"content" : "Coding in progress..."},
+	{ 
+	"title" : "Server" ,
+	"content" : "10.21.4.160 <br />",
+},
+{ 
+	"title" : "L2" ,
+	"content": "Coding in progress..."
+},
+{ 
+	"title" : "Lateral Thinking" ,
+	"content": "Games"
 }
+
 
 //END NOTES 
 ],
