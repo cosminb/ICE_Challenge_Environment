@@ -957,7 +957,11 @@ ui.rank = {
 	update : function ( ) {
 		var html = "";
 		this.computeScore();
-		for ( var i in input.teams ) {
+		
+		input.teams.sort( function ( a, b ) {
+			return a.score < b.score;
+		} )
+		for ( var i = 0; i<input.teams.length; i++ ) {
 			html += "<div class='team' >" +
 					"<span class='name' style=' color:"+input.teams[i].color+"'>"+ input.teams[i].name + "</span>  " +
 					"<span class='score'>"+input.teams[i].score + "pts</span>" + 

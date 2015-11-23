@@ -19,7 +19,7 @@ var input = {
 }, {
     "name": "Da!",
     "points": [
-		{	name : "l1Q", score : 3 },
+		{	name : "l1Q", score : 4 },
 		{ name : "l1S", score : 2 } ,
 		{ name : "l1S", score : 3 } 
 	]
@@ -38,11 +38,11 @@ var input = {
 }, {
     "name": "NullNameException",
     "points": [
-	{ name : "Balloon", score : 1}
+	{ name : "Balloon", score : 2}
 	]
 }, {
     "name": "Javatar",
-    "points": []
+    "points": [{ name : "Balloon", score : 1}]
 }, {
     "name": "sugus",
     "points": []
@@ -52,24 +52,22 @@ var input = {
 }, {
     "name": "BRRC!",
     "points": [
-		{name : "L1Q", score : 1 }
+		{name : "L1Q", score : 12 }
 	]
 }, {
     "name": "CBR?",
-    "points": []
+    "points": [{ name : "PaperGame", score : 2}]
 }, {
     "name": "Ignis",
     "points": [
-			{ name : "PaperGame", score : 1}
+			{ name : "PaperGame", score : 2}
 	]
 }, {
     "name": "Nikolaus Lenau Elite",
     "points": []
 }, {
     "name": "TnT",
-    "points": [
-		{ name : "Balloon", score : 1},
-		{ name : "L1Q", score : 1},
+    "points": [ {name : "L1", score : 3}
 		
 	]
 }, {
@@ -90,18 +88,18 @@ var input = {
 }, {
     "name": "module 110",
     "points": [
-	{ name : "L1", score : 5},
+	{ name : "L1", score : 11},
 		
 	]
 }, {
     "name": "FNice",
-    "points": []
+    "points": [{ name : "L1", score : 1},]
 }, {
     "name": "The Untouchables",
     "points": []
 }, {
     "name": "SyntaxError",
-    "points": [{ name : "L1", score : 4},
+    "points": [{ name : "L1", score : 9},
 		]
 }, {
     "name": "GreenArt",
@@ -112,7 +110,7 @@ var input = {
 		]
 }, {
     "name": "Dynamic",
-    "points": [
+    "points": [{ name : "L1", score : 2},
 	]
 }
 
